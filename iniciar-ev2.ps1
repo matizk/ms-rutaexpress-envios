@@ -26,10 +26,10 @@ if ($SoloConfigurar) { return }
 $dockerPath = (Get-Command docker -ErrorAction Stop).Source
 $composeFile = Join-Path $PSScriptRoot 'compose.ev2.yml'
 if ($SoloInfraestructura) {
-    & $dockerPath compose --env-file $envFile -f $composeFile up -d --wait catalog-db shipments-db messaging-db rabbitmq-1 rabbitmq-2
+    & $dockerPath compose -p rutaexpress-ev2 --env-file $envFile -f $composeFile up -d --wait catalog-db shipments-db messaging-db rabbitmq-1 rabbitmq-2
 } else {
-    if ($SinConstruir) { & $dockerPath compose --env-file $envFile -f $composeFile up -d }
-    else { & $dockerPath compose --env-file $envFile -f $composeFile up -d --build }
+    if ($SinConstruir) { & $dockerPath compose -p rutaexpress-ev2 --env-file $envFile -f $composeFile up -d }
+    else { & $dockerPath compose -p rutaexpress-ev2 --env-file $envFile -f $composeFile up -d --build }
 }
 if ($LASTEXITCODE -ne 0) { throw 'Docker Compose fallo. Revisa espacio, Internet y puertos ocupados; no detengas otros proyectos sin identificarlos.' }
 if (-not $SoloInfraestructura) {

@@ -14,7 +14,7 @@ if ($dockerCommand) {
     $dockerPath = $dockerCommand.Source
     $null = & $dockerPath info --format '{{.ServerVersion}}' 2>$null
     if ($LASTEXITCODE -eq 0 -and $result.Ready) {
-        $argsCompose = @('compose','--env-file',(Join-Path $PSScriptRoot '.env.ev2'),'-f',(Join-Path $PSScriptRoot 'compose.ev2.yml'))
+        $argsCompose = @('compose','-p','rutaexpress-ev2','--env-file',(Join-Path $PSScriptRoot '.env.ev2'),'-f',(Join-Path $PSScriptRoot 'compose.ev2.yml'))
         $statuses = & $dockerPath @argsCompose ps -a --format json 2>$null
         if ($LASTEXITCODE -eq 0) {
             $rows = @($statuses | ForEach-Object { $_ | ConvertFrom-Json })

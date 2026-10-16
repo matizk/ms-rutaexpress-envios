@@ -19,7 +19,7 @@ if (-not $SoloArchivos) {
     if ($engine -ne 'linux') { throw 'El stack requiere contenedores Linux en Docker Desktop.' }
     $null = & $dockerPath compose version 2>$null
     if ($LASTEXITCODE -ne 0) { throw 'Se requiere Docker Compose v2 o posterior (docker compose).' }
-    $null = & $dockerPath compose --env-file (Join-Path $PSScriptRoot '.env.ev2') -f (Join-Path $PSScriptRoot 'compose.ev2.yml') config --quiet 2>$null
+    $null = & $dockerPath compose -p rutaexpress-ev2 --env-file (Join-Path $PSScriptRoot '.env.ev2') -f (Join-Path $PSScriptRoot 'compose.ev2.yml') config --quiet 2>$null
     if ($LASTEXITCODE -ne 0) { throw 'Docker Compose rechazo la configuracion. Revisa los archivos localmente sin compartir contrasenas.' }
     Write-Output 'OK: Docker Linux, Compose y configuracion del stack disponibles.'
     if ($EnEjecucion) {

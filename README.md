@@ -50,9 +50,12 @@ un envío no puede pasar a `EN_RUTA` sin haber sido aceptado y enviado previamen
   "emailDestinatario": "ana@example.com",
   "direccionOrigen": "Santiago",
   "direccionDestino": "Valparaíso",
-  "pesoKg": 2.50
+  "pesoKg": 2.50,
+  "servicioId": 1
 }
 ```
+
+`servicioId` debe ser el ID real de un servicio con cupos creado en Catálogo; `1` es solo un ejemplo. Crear el envío reserva un cupo. El navegador envía las operaciones por el BFF, no directamente al puerto interno del microservicio.
 
 Para cambiar el estado se envía, por ejemplo, `PUT /api/shipments/1/status`:
 

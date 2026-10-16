@@ -255,6 +255,26 @@ try {
         $null = & $configure -Local
         Assert-Test ((Read-Ev2Settings $f.Env).FRONTEND_API_UPSTREAM -eq 'http://bff:8080') 'No restauro el BFF local'
     }
+    $parseErrors = $null; $parseTokens = $null
+    $smokeAst = [Management.Automation.Language.Parser]::ParseFile(
+        (Join-Path (Split-Path -Parent $PSScriptRoot) 'probar-ev2.ps1'), [ref]$parseTokens, [ref]$parseErrors)
+    Assert-Test ($parseErrors.Count -eq 0) 'Error de sintaxis en prueba local'
+    # Exercise the real parameter binder without executing Docker or the smoke body.
+    $projectBinder = [scriptblock]::Create($smokeAst.ParamBlock.Extent.Text + "`nreturn `$Proyecto")
+    foreach ($project in @('rutaexpress-ev2','rutaexpress-ev2-prueba-limpia')) {
+        Run-Test 'Smoke admite solamente el stack local o un proyecto de prueba explicito' {
+            param($f)
+            Assert-Test ((& $projectBinder -Proyecto $project) -eq $project) 'Proyecto local valido rechazado'
+        }
+    }
+    foreach ($project in @('rutaexpress-ev2-aws','otro-proyecto','rutaexpress-ev2;injection')) {
+        Run-Test 'Smoke rechaza proyectos AWS, ajenos o con inyeccion antes de ejecutar Docker' {
+            param($f)
+            $rejected = $false
+            try { $null = & $projectBinder -Proyecto $project } catch { $rejected = $true }
+            Assert-Test $rejected 'Proyecto peligroso aceptado'
+        }
+    }
     Write-Output ("Pruebas de configuracion: {0} correctas. No se modificaron archivos reales ni servicios." -f $script:passed)
 } finally {
     # Only remove the exact disposable directory created above, after validating its parent/name.

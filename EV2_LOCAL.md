@@ -47,6 +47,8 @@ La prueba crea un servicio y envíos ficticios. Verifica:
 
 La evidencia se genera en `evidencias/EV2_PRUEBA_LOCAL.md`, sin contraseñas ni datos personales reales. Durante la prueba se reinician exclusivamente los contenedores del proyecto EV2. Para omitir los reinicios: `.\probar-ev2.ps1 -SinReinicios`.
 
+Para una verificación avanzada con volúmenes nuevos, arrancar el Compose de una copia limpia con `docker compose -p rutaexpress-ev2-prueba-limpia --env-file .env.ev2 -f compose.ev2.yml up -d --build` y probar con `.\probar-ev2.ps1 -Proyecto rutaexpress-ev2-prueba-limpia`. Requiere los puertos locales libres; no ejecutar simultáneamente con el stack habitual. Ese proyecto conserva sus propios volúmenes y contraseñas. El parámetro solo acepta `rutaexpress-ev2` o `rutaexpress-ev2-prueba-...`; rechaza el stack AWS. El arranque habitual sigue usando `iniciar-ev2.ps1`, sin cambiar de proyecto ni borrar datos.
+
 ## Detener y volver a arrancar
 
 ```powershell
@@ -66,4 +68,4 @@ Para más detalle del nuevo componente, consultar `README.md` en la carpeta herm
 
 Angular puede seguir local en EV2. configurar-api.ps1 permite apuntar su proxy a la URL HTTPS oficial de API Gateway/API Manager, conservando el stage si corresponde. No cambia Azure ni crea recursos cloud. configurar-api.ps1 -Local vuelve al BFF del Compose. Ambas opciones necesitan recrear el frontend con iniciar-ev2.ps1 -SinConstruir. Nunca usar URLs de terceros no autorizados, pues el proxy reenvía bearer tokens. Ver PREPARACION_EQUIPO_EV2.md y DEMOSTRACION_Y_EVIDENCIAS_EV2.md.
 
-Pruebas adicionales: tests/probar-configuracion.ps1 (43 casos aislados) y tests/probar-proxy.ps1 (12 casos en contenedores efímeros sin red). Se ejecutaron con PowerShell 7; Windows PowerShell 5.1 está bloqueado por la política del equipo y no se cambió esa política.
+Pruebas adicionales: tests/probar-configuracion.ps1 (48 casos aislados) y tests/probar-proxy.ps1 (12 casos en contenedores efímeros sin red). Se ejecutaron con PowerShell 7; Windows PowerShell 5.1 está bloqueado por la política del equipo y no se cambió esa política.

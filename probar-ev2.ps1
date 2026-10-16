@@ -1,12 +1,16 @@
-param([switch]$SinReinicios)
+param(
+    [switch]$SinReinicios,
+    [ValidatePattern('^rutaexpress-ev2(-prueba-[a-z0-9-]{1,24})?$')]
+    [string]$Proyecto = 'rutaexpress-ev2'
+)
 $ErrorActionPreference = 'Stop'
 $dockerCommand = Get-Command docker -ErrorAction SilentlyContinue
 $dockerPath = if ($dockerCommand) { $dockerCommand.Source } else { 'C:\Users\Matizk\AppData\Local\Programs\DockerDesktop\resources\bin\docker.exe' }
 $envFile = Join-Path $PSScriptRoot '.env.ev2'
 if (-not (Test-Path -LiteralPath $envFile)) { throw 'Ejecuta iniciar-ev2.ps1 primero.' }
-$composeArgs = @('compose', '--env-file', $envFile, '-f', (Join-Path $PSScriptRoot 'compose.ev2.yml'))
+$composeArgs = @('compose', '-p', $Proyecto, '--env-file', $envFile, '-f', (Join-Path $PSScriptRoot 'compose.ev2.yml'))
 $stackInfo = & $dockerPath @composeArgs config --format json | ConvertFrom-Json
-if ($LASTEXITCODE -ne 0 -or $stackInfo.name -ne 'rutaexpress-ev2') { throw 'La prueba solo admite el proyecto aislado rutaexpress-ev2.' }
+if ($LASTEXITCODE -ne 0 -or $stackInfo.name -ne $Proyecto) { throw 'La prueba solo admite el proyecto local EV2 solicitado.' }
 $ev2Settings = @{}
 Get-Content -LiteralPath $envFile | ForEach-Object {
     if ($_ -match '^([A-Z_]+)=(.*)$') { $ev2Settings[$Matches[1]] = $Matches[2] }
@@ -137,7 +141,7 @@ if (-not $SinReinicios) {
 
 $evidenceDirectory = Join-Path $PSScriptRoot 'evidencias'
 $null = New-Item -ItemType Directory -Path $evidenceDirectory -Force
-$report = @('# EV2 - evidencia de prueba local', '', ('Fecha: ' + (Get-Date -Format o)), '', 'Proyecto Docker: rutaexpress-ev2. Datos de demostracion, sin correos reales ni envio externo de mensajes.', '')
+$report = @('# EV2 - evidencia de prueba local', '', ('Fecha: ' + (Get-Date -Format o)), '', ("Proyecto Docker: $Proyecto. Datos de demostracion, sin correos reales ni envio externo de mensajes."), '')
 $report += $evidence.ToArray()
 $report += @('', 'Pendiente: login institucional Azure, JWT real de ese tenant y despliegue cloud. Estas pruebas no certifican esos componentes.', '', 'Las DLQ conservan mensajes invalidos intencionales de esta prueba. No se eliminaron datos o volumenes anteriores.')
 [IO.File]::WriteAllLines((Join-Path $evidenceDirectory 'EV2_PRUEBA_LOCAL.md'), $report, (New-Object Text.UTF8Encoding $false))
