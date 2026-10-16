@@ -265,3 +265,4 @@ try {
         Remove-Item -LiteralPath $resolved -Recurse -Force
     } else { throw 'No se borro el directorio temporal: su ruta no paso la validacion de seguridad.' }
 }
+exit 0

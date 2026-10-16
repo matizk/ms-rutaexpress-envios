@@ -72,3 +72,4 @@ try {
     }
 }
 "TOTAL: $script:passed pruebas PostgreSQL efimero aprobadas. Sin RDS real; este fixture NO demuestra TLS cloud."
+exit 0

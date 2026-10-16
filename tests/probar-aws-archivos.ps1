@@ -111,3 +111,5 @@ try {
     Remove-Item -LiteralPath $absolute -Recurse -Force
 }
 "TOTAL: $script:passed pruebas de scripts en archivos efimeros aprobadas. Sin AWS ni credenciales reales."
+# Las pruebas negativas dejan LASTEXITCODE=1 aunque sean correctas: cerrar con exito explicito.
+exit 0

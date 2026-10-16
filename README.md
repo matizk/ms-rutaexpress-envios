@@ -136,3 +136,5 @@ Pruebas offline: `./tests/probar-aws.ps1`; agregar `-ConDocker` para validar Com
 ## Gitflow y descarga de EV2
 
 Ver [CONTRIBUTING.md](CONTRIBUTING.md) y [PREPARACION_EQUIPO_EV2.md](PREPARACION_EQUIPO_EV2.md). La feature se revisa mediante PR a develop. CI compila Java 21 y prueba scripts/SQL aislados, sin desplegar ni usar secretos AWS/Azure. main mantiene la entrega anterior; una release requiere integracion y evidencia cloud real. El [alcance EV2](docs/ALCANCE_EV2.md) separa requisitos, implementacion y pendientes.
+
+Los cuatro PR y el estado de esta publicacion estan en [PUBLICACION_GITFLOW_2026-10-16.md](evidencias/PUBLICACION_GITFLOW_2026-10-16.md). Mientras sean borradores, revisar la rama feature: develop todavia no contiene su funcionalidad.

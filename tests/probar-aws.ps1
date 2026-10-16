@@ -199,3 +199,4 @@ if ($ConDocker) {
     }
 }
 "TOTAL: $script:passed pruebas AWS locales aprobadas. Ninguna llamada AWS/Azure/RDS ni despliegue real."
+exit 0

@@ -25,3 +25,4 @@ foreach ($example in $examples) {
     $passed++
 }
 Write-Output ("Pruebas de proxy: {0} correctas; contenedores efimeros sin red, sin contactar dominios externos." -f $passed)
+exit 0
