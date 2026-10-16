@@ -14,4 +14,8 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long>, JpaSp
 
     Optional<Shipment> findByCodigoSeguimiento(String codigoSeguimiento);
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select s from Shipment s where s.id = :id")
+    Optional<Shipment> findForUpdate(@org.springframework.data.repository.query.Param("id") Long id);
+
 }

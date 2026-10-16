@@ -1,0 +1,15 @@
+{
+  "name": "rutaexpress-ev2",
+  "region": "us-east-1",
+  "tenantId": "",
+  "apiClientId": "",
+  "spaClientId": "",
+  "scope": "operator.access",
+  "cognitoIssuer": "",
+  "cognitoClientId": "",
+  "cognitoScope": "openid",
+  "integrationMode": "PRIVATE_ALB",
+  "vpcLinkId": "",
+  "listenerArn": "",
+  "backendHttpsOrigin": ""
+}

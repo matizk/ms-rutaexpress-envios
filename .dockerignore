@@ -3,6 +3,15 @@
 .vscode
 target
 .env
+.env.*
+**/.env
+**/.env.*
+!*.example
+deploy/aws/certs
+deploy/aws/api-config.json
+deploy/aws/*.generated.json
+**/*.key
+**/*.pem
 application-local.properties
 application-local.yml
 application-local.yaml

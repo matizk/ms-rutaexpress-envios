@@ -1,0 +1,12 @@
+[extend]
+useDefault = true
+
+# SOLO valores deterministas que crean/destruyen los tests aislados.
+# No se excluyen archivos, directorios de tests, proveedores ni reglas completas.
+[[allowlists]]
+description = "Exact disposable test fixture passwords; never valid cloud credentials"
+regexTarget = "secret"
+regexes = [
+  '''(?:CAT|SHP|MSG|RAB|CKE)_012345678901234567890123456789''',
+  '''Fixture(?:Master|Catalog|Shipments|Messaging)_01234567890123456789''',
+]

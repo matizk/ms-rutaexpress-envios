@@ -1,0 +1,9 @@
+name: rutaexpress-ev2-frontend-cloud
+# Se ejecuta en el PC del alumno, NO en EC2. No necesita backends locales activos.
+services:
+  frontend:
+    build: { context: ../../../frontend-rutaexpress }
+    environment:
+      BFF_UPSTREAM: ${FRONTEND_API_UPSTREAM:?Configurar URL HTTPS de API Gateway con configurar-api.ps1}
+    ports: ["127.0.0.1:4200:80"]
+    restart: unless-stopped
