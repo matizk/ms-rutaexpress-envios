@@ -1,8 +1,8 @@
 # ms-rutaexpress-shipments
 
-> EV2 en revision: rama `codex/feature-ev2-mensajeria`, PR hacia develop. main conserva EV1. [Descargar version coordinada](PREPARACION_EQUIPO_EV2.md), [Gitflow](CONTRIBUTING.md) y [paquete AWS](deploy/aws/README.md). Cloud/login institucional pendientes de verificacion real.
+> Versión de integración EV2: `develop`, mediante el [PR #2](https://github.com/matizk/ms-rutaexpress-shipments/pull/2). `main` conserva EV1 hasta una release validada. [Descarga](PREPARACION_EQUIPO_EV2.md), [pendientes del equipo](CONTINUAR_EV2_EQUIPO.md), [Gitflow](CONTRIBUTING.md) y [AWS](deploy/aws/README.md). Cloud/login institucional pendientes de verificación real.
 
-Microservicio de envíos de RutaExpress para la Entrega 1 de DSY1107.
+Microservicio de envíos de RutaExpress para DSY1107. EV2 agrega aceptación del operador y outbox transaccional; los apartados de EV1 se conservan como antecedente, no como despliegue EV2 verificado.
 
 ## Responsabilidad
 
@@ -132,7 +132,7 @@ El stack nuevo, sus pruebas y comandos están en [EV2_LOCAL.md](EV2_LOCAL.md). E
 
 ## Preparacion AWS EV2 (16-10-2026)
 
-La docente confirmo Angular local, Azure para autenticacion y API Manager/Rabbit/servicio/BD en AWS (RDS para BD). El [paquete AWS](deploy/aws/README.md) contiene Compose separado sin Postgres local, JDBC con TLS verify-full, roles/bases RDS, generador LOCAL de plantilla HTTP API con JWT Azure/Cognito, comprobadores y Compose de frontend local hacia AWS. No se ha desplegado en cloud; se publica como avance en `codex/feature-ev2-mensajeria`, con PR a develop, sin cambiar main.
+La docente confirmo Angular local, Azure para autenticacion y API Manager/Rabbit/servicio/BD en AWS (RDS para BD). El [paquete AWS](deploy/aws/README.md) contiene Compose separado sin Postgres local, JDBC con TLS verify-full, roles/bases RDS, generador LOCAL de plantilla HTTP API con JWT Azure/Cognito, comprobadores y Compose de frontend local hacia AWS. Está preparado para integración en `develop`; no se ha desplegado en cloud ni se ha cambiado `main`.
 
 Pruebas offline: `./tests/probar-aws.ps1`; agregar `-ConDocker` para validar Compose con datos ficticios sin iniciar contenedores. El SQL antiguo de EV1 descrito arriba no crea el outbox EV2; no aplicarlo como migracion de este paquete. Seguir la guia AWS, que declara ddl-auto=update como limitacion de laboratorio y preserva bases existentes.
 
@@ -140,4 +140,4 @@ Pruebas offline: `./tests/probar-aws.ps1`; agregar `-ConDocker` para validar Com
 
 Ver [CONTRIBUTING.md](CONTRIBUTING.md) y [PREPARACION_EQUIPO_EV2.md](PREPARACION_EQUIPO_EV2.md). La feature se revisa mediante PR a develop. CI compila Java 21 y prueba scripts/SQL aislados, sin desplegar ni usar secretos AWS/Azure. main mantiene la entrega anterior; una release requiere integracion y evidencia cloud real. El [alcance EV2](docs/ALCANCE_EV2.md) separa requisitos, implementacion y pendientes.
 
-Los cuatro PR y el estado de esta publicacion estan en [PUBLICACION_GITFLOW_2026-10-16.md](evidencias/PUBLICACION_GITFLOW_2026-10-16.md). Mientras sean borradores, revisar la rama feature: develop todavia no contiene su funcionalidad.
+Los cuatro PR originales están en [PUBLICACION_GITFLOW_2026-10-16.md](evidencias/PUBLICACION_GITFLOW_2026-10-16.md), un registro histórico de la publicación inicial. El estado actual se comprueba en esos PR y en [la guía de continuación](CONTINUAR_EV2_EQUIPO.md). No confundir una fusión a `develop` con una release ni con una prueba cloud.

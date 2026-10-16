@@ -15,7 +15,7 @@ Si Windows bloquea scripts por política de ejecución, no cambiar políticas gl
 
 ## 2. Descargar todo en carpetas hermanas
 
-El avance EV2 usa Gitflow: `codex/feature-ev2-mensajeria` contiene la funcionalidad en revisión, con PR a develop; main conserva EV1. Clonar las seis carpetas de componentes en el mismo directorio, conservando estos nombres:
+El avance EV2 usa Gitflow. La versión coordinada de integración es `develop`, recibida por PR desde `codex/feature-ev2-mensajeria`; `main` conserva la entrega anterior (en Mensajería, solo la base inicial). Comprobar la fusión en los cuatro PR enlazados en [CONTINUAR_EV2_EQUIPO.md](CONTINUAR_EV2_EQUIPO.md). Clonar las seis carpetas de componentes en el mismo directorio, conservando estos nombres:
 
 ~~~text
 carpeta-del-equipo/
@@ -27,18 +27,18 @@ carpeta-del-equipo/
   ms-rutaexpress-report/
 ~~~
 
-No mezclar el Compose EV2 con el de EV1 ni poner una carpeta dentro de otra. Mientras los PR estén abiertos, clonar la rama feature en los cuatro componentes modificados; Catalogo y Reportes no tienen cambios EV2 y develop apunta a su main existente. Revisar los PR/checks antes de integrar. Comandos para un directorio nuevo y vacío:
+No mezclar el Compose EV2 con el de EV1 ni poner una carpeta dentro de otra. Catálogo y Reportes no tienen cambios funcionales EV2; su develop coincide con main. Comandos para un directorio nuevo y vacío:
 
 ~~~powershell
-git clone -b codex/feature-ev2-mensajeria https://github.com/matizk/frontend-rutaexpress.git
-git clone -b codex/feature-ev2-mensajeria https://github.com/matizk/ms-rutaexpress-bff.git
+git clone -b develop https://github.com/matizk/frontend-rutaexpress.git
+git clone -b develop https://github.com/matizk/ms-rutaexpress-bff.git
 git clone -b develop https://github.com/matizk/ms-rutaexpress-catalog.git
-git clone -b codex/feature-ev2-mensajeria https://github.com/matizk/ms-rutaexpress-shipments.git
-git clone -b codex/feature-ev2-mensajeria https://github.com/matizk/ms-rutaexpress-messaging.git
+git clone -b develop https://github.com/matizk/ms-rutaexpress-shipments.git
+git clone -b develop https://github.com/matizk/ms-rutaexpress-messaging.git
 git clone -b develop https://github.com/matizk/ms-rutaexpress-report.git
 ~~~
 
-Si ya tienen copias con trabajo propio, NO volver a clonar encima ni resetear: revisar git status/fetch y coordinar la base. Despues de aprobar e integrar los PR, el equipo puede pasar a develop mediante un cambio de rama seguro. Ver [CONTRIBUTING.md](CONTRIBUTING.md). No se ha hecho una release ni se debe desplegar automaticamente por publicar una feature.
+Si ya tienen copias con trabajo propio, NO volver a clonar encima ni resetear: revisar git status/fetch y coordinar la base. Pasar a develop mediante un cambio de rama seguro; ver [CONTRIBUTING.md](CONTRIBUTING.md). No se ha hecho una release ni se debe desplegar automáticamente por publicar código. Las features originales se conservan como historial, no como base de trabajo permanente.
 
 No subir .env.ev2, contraseñas, tokens, credenciales AWS, node_modules ni los modelos de transcripción. Cada computador genera sus propias contraseñas locales.
 
@@ -108,7 +108,7 @@ El navegador sigue en localhost:4200 y su callback Azure no cambia. El destino r
 
 ## 6. Qué comprobar en AWS y el gateway
 
-- Confirmacion docente del 16-10-2026: API Manager en AWS, Rabbit/servicio en AWS y BD mediante RDS; Azure solo autentica y Angular queda local. El paquete y paso a paso estan en [deploy/aws/README.md](deploy/aws/README.md). No esta desplegado ni publicado todavia. Incluye Compose solo de Angular local para no depender de backends locales al mostrar AWS.
+- Confirmacion docente del 16-10-2026: API Manager en AWS, Rabbit/servicio en AWS y BD mediante RDS; Azure solo autentica y Angular queda local. El paquete y paso a paso están publicados en [deploy/aws/README.md](deploy/aws/README.md); la publicación del código NO certifica despliegue real. Incluye Compose solo de Angular local para no depender de backends locales al mostrar AWS.
 - Confirmar qué servicio de solicitud/respuesta está en EC2 y conectado realmente a RabbitMQ y PostgreSQL/RDS. Las indicaciones de clase piden al menos uno; no asumir que todos estén publicados por ver una captura del frontend.
 - Verificar dos nodos RabbitMQ, tres colas y tres DLQ, exchanges direct/topic y el Compose ejecutándose en cloud.
 - El gateway debe enrutar /api/operator/shipments y /api/operator/confirmations a los servicios correspondientes y aceptar sus access tokens Azure. Las rutas administrativas conservan Cognito/Admin.
