@@ -1,5 +1,7 @@
 # ms-rutaexpress-shipments
 
+> EV2 en revision: rama `codex/feature-ev2-mensajeria`, PR hacia develop. main conserva EV1. [Descargar version coordinada](PREPARACION_EQUIPO_EV2.md), [Gitflow](CONTRIBUTING.md) y [paquete AWS](deploy/aws/README.md). Cloud/login institucional pendientes de verificacion real.
+
 Microservicio de envíos de RutaExpress para la Entrega 1 de DSY1107.
 
 ## Responsabilidad
@@ -120,3 +122,17 @@ La respuesta esperada es:
 ```json
 { "status": "UP" }
 ```
+
+## Avance EV2: PostgreSQL y RabbitMQ
+
+El stack nuevo, sus pruebas y comandos están en [EV2_LOCAL.md](EV2_LOCAL.md). Ejecutar `iniciar-ev2.ps1` con las seis carpetas de componentes hermanas. Usa un proyecto Compose y volúmenes separados, agrega outbox transaccional y el servicio `ms-rutaexpress-messaging`. `probar-ev2.ps1` produce evidencia de datos persistentes, ACK/DLQ, duplicados y recuperación. El login institucional Azure sigue pendiente de integrar con la configuración del equipo.
+
+## Preparacion AWS EV2 (16-10-2026)
+
+La docente confirmo Angular local, Azure para autenticacion y API Manager/Rabbit/servicio/BD en AWS (RDS para BD). El [paquete AWS](deploy/aws/README.md) contiene Compose separado sin Postgres local, JDBC con TLS verify-full, roles/bases RDS, generador LOCAL de plantilla HTTP API con JWT Azure/Cognito, comprobadores y Compose de frontend local hacia AWS. No se ha desplegado en cloud; se publica como avance en `codex/feature-ev2-mensajeria`, con PR a develop, sin cambiar main.
+
+Pruebas offline: `./tests/probar-aws.ps1`; agregar `-ConDocker` para validar Compose con datos ficticios sin iniciar contenedores. El SQL antiguo de EV1 descrito arriba no crea el outbox EV2; no aplicarlo como migracion de este paquete. Seguir la guia AWS, que declara ddl-auto=update como limitacion de laboratorio y preserva bases existentes.
+
+## Gitflow y descarga de EV2
+
+Ver [CONTRIBUTING.md](CONTRIBUTING.md) y [PREPARACION_EQUIPO_EV2.md](PREPARACION_EQUIPO_EV2.md). La feature se revisa mediante PR a develop. CI compila Java 21 y prueba scripts/SQL aislados, sin desplegar ni usar secretos AWS/Azure. main mantiene la entrega anterior; una release requiere integracion y evidencia cloud real. El [alcance EV2](docs/ALCANCE_EV2.md) separa requisitos, implementacion y pendientes.
