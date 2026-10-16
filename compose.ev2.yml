@@ -1,0 +1,196 @@
+name: rutaexpress-ev2
+
+services:
+  catalog-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: catalog_db
+      POSTGRES_USER: rutaexpress
+      POSTGRES_PASSWORD: ${CATALOG_DB_PASSWORD:?Run iniciar-ev2.ps1}
+    ports: ["127.0.0.1:15432:5432"]
+    volumes: ["ev2-catalog-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rutaexpress -d catalog_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  shipments-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: shipments_db
+      POSTGRES_USER: rutaexpress
+      POSTGRES_PASSWORD: ${SHIPMENTS_DB_PASSWORD:?Run iniciar-ev2.ps1}
+    ports: ["127.0.0.1:15433:5432"]
+    volumes:
+      - ev2-shipments-data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rutaexpress -d shipments_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  messaging-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: messaging_db
+      POSTGRES_USER: rutaexpress
+      POSTGRES_PASSWORD: ${MESSAGING_DB_PASSWORD:?Run iniciar-ev2.ps1}
+    ports: ["127.0.0.1:15434:5432"]
+    volumes: ["ev2-messaging-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rutaexpress -d messaging_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rabbitmq-1:
+    image: rabbitmq:4.2-management
+    hostname: rabbitmq-1
+    environment: &rabbit-environment
+      RABBITMQ_NODENAME: rabbit@rabbitmq-1
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Run iniciar-ev2.ps1}
+      RABBITMQ_DEFAULT_USER: rutaexpress
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Run iniciar-ev2.ps1}
+    ports:
+      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:5672:5672"
+    volumes:
+      - ev2-rabbit-1-data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 20s
+
+  rabbitmq-2:
+    image: rabbitmq:4.2-management
+    hostname: rabbitmq-2
+    environment:
+      <<: *rabbit-environment
+      RABBITMQ_NODENAME: rabbit@rabbitmq-2
+    ports: ["127.0.0.1:15673:15672"]
+    volumes:
+      - ev2-rabbit-2-data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    depends_on:
+      rabbitmq-1: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+      start_period: 20s
+
+  catalog:
+    build: { context: ../ms-rutaexpress-catalog }
+    environment:
+      PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://catalog-db:5432/catalog_db
+      SPRING_DATASOURCE_USERNAME: rutaexpress
+      SPRING_DATASOURCE_PASSWORD: ${CATALOG_DB_PASSWORD}
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
+    ports: ["127.0.0.1:8081:8081"]
+    mem_limit: 512m
+    depends_on:
+      catalog-db: { condition: service_healthy }
+
+  shipments:
+    build: { context: . }
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://shipments-db:5432/shipments_db
+      SPRING_DATASOURCE_USERNAME: rutaexpress
+      SPRING_DATASOURCE_PASSWORD: ${SHIPMENTS_DB_PASSWORD}
+      CATALOGO_URL: http://catalog:8081
+      MESSAGING_ENABLED: "true"
+      AZURE_ENABLED: ${AZURE_ENABLED:-false}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
+      AZURE_API_CLIENT_ID: ${AZURE_API_CLIENT_ID:-}
+      AZURE_SPA_CLIENT_ID: ${AZURE_SPA_CLIENT_ID:-}
+      AZURE_OPERATOR_SCOPE: ${AZURE_OPERATOR_SCOPE:-operator.access}
+      COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI}
+      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID}
+      SPRING_RABBITMQ_ADDRESSES: rabbitmq-1:5672,rabbitmq-2:5672
+      SPRING_RABBITMQ_USERNAME: rutaexpress
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
+    ports: ["127.0.0.1:5000:5000"]
+    mem_limit: 512m
+    depends_on:
+      shipments-db: { condition: service_healthy }
+      catalog: { condition: service_started }
+      rabbitmq-1: { condition: service_healthy }
+
+  messaging:
+    build: { context: ../ms-rutaexpress-messaging }
+    environment:
+      AZURE_ENABLED: ${AZURE_ENABLED:-false}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
+      AZURE_API_CLIENT_ID: ${AZURE_API_CLIENT_ID:-}
+      AZURE_SPA_CLIENT_ID: ${AZURE_SPA_CLIENT_ID:-}
+      AZURE_OPERATOR_SCOPE: ${AZURE_OPERATOR_SCOPE:-operator.access}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://messaging-db:5432/messaging_db
+      SPRING_DATASOURCE_USERNAME: rutaexpress
+      SPRING_DATASOURCE_PASSWORD: ${MESSAGING_DB_PASSWORD}
+      SPRING_RABBITMQ_ADDRESSES: rabbitmq-1:5672,rabbitmq-2:5672
+      SPRING_RABBITMQ_USERNAME: rutaexpress
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI}
+      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID}
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
+    ports: ["127.0.0.1:8084:8084"]
+    mem_limit: 512m
+    depends_on:
+      messaging-db: { condition: service_healthy }
+      rabbitmq-1: { condition: service_healthy }
+      rabbitmq-2: { condition: service_healthy }
+
+  report:
+    build: { context: ../ms-rutaexpress-report }
+    environment:
+      SHIPMENTS_URL: http://shipments:5000
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
+    ports: ["127.0.0.1:8082:8082"]
+    mem_limit: 512m
+    depends_on:
+      shipments: { condition: service_started }
+
+  bff:
+    build: { context: ../ms-rutaexpress-bff }
+    environment:
+      AZURE_ENABLED: ${AZURE_ENABLED:-false}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
+      AZURE_API_CLIENT_ID: ${AZURE_API_CLIENT_ID:-}
+      AZURE_SPA_CLIENT_ID: ${AZURE_SPA_CLIENT_ID:-}
+      AZURE_OPERATOR_SCOPE: ${AZURE_OPERATOR_SCOPE:-operator.access}
+      COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI}
+      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID}
+      CATALOGO_URL: http://catalog:8081
+      SHIPMENTS_URL: http://shipments:5000
+      MESSAGING_URL: http://messaging:8084
+      REPORT_URL: http://report:8082
+      CORS_ALLOWED_ORIGIN: http://localhost:4200
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
+    ports: ["127.0.0.1:8080:8080"]
+    mem_limit: 512m
+    depends_on:
+      shipments: { condition: service_started }
+      messaging: { condition: service_started }
+
+  frontend:
+    build: { context: ../frontend-rutaexpress }
+    environment:
+      BFF_UPSTREAM: ${FRONTEND_API_UPSTREAM:-http://bff:8080}
+    ports: ["127.0.0.1:4200:80"]
+    depends_on:
+      bff: { condition: service_started }
+
+volumes:
+  ev2-catalog-data:
+  ev2-shipments-data:
+  ev2-messaging-data:
+  ev2-rabbit-1-data:
+  ev2-rabbit-2-data:
