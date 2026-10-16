@@ -11,6 +11,7 @@ import duoc.rutaexpress.shipments.dto.PublicTrackingResponse;
 import duoc.rutaexpress.shipments.exception.BusinessRuleException;
 import duoc.rutaexpress.shipments.exception.ResourceNotFoundException;
 import duoc.rutaexpress.shipments.repository.ShipmentRepository;
+import duoc.rutaexpress.shipments.messaging.OutboxRecorder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,10 +32,12 @@ public class ShipmentService {
     private static final Map<ShipmentStatus, Set<ShipmentStatus>> TRANSICIONES_PERMITIDAS = transicionesPermitidas();
     private final ShipmentRepository shipmentRepository;
     private final CatalogClient catalogClient;
+    private final OutboxRecorder outbox;
 
-    public ShipmentService(ShipmentRepository shipmentRepository, CatalogClient catalogClient) {
+    public ShipmentService(ShipmentRepository shipmentRepository, CatalogClient catalogClient, OutboxRecorder outbox) {
         this.shipmentRepository = shipmentRepository;
         this.catalogClient = catalogClient;
+        this.outbox = outbox;
     }
 
     @Transactional
@@ -46,7 +49,9 @@ public class ShipmentService {
         Shipment shipment = new Shipment(request.codigoSeguimiento(), request.nombreDestinatario(),
                 request.emailDestinatario(), request.direccionOrigen(), request.direccionDestino(), request.pesoKg(),
                 service.id(), service.nombre());
-        return ShipmentResponse.from(shipmentRepository.save(shipment));
+        Shipment saved = shipmentRepository.save(shipment);
+        outbox.record(saved, "shipment.created");
+        return ShipmentResponse.from(saved);
     }
 
     public ShipmentResponse findById(Long id) {
@@ -81,7 +86,8 @@ public class ShipmentService {
 
     @Transactional
     public ShipmentResponse changeStatus(Long id, ChangeShipmentStatusRequest request) {
-        Shipment shipment = findEntityById(id);
+        Shipment shipment = shipmentRepository.findForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe el envío con id " + id));
         ShipmentStatus currentStatus = shipment.getEstado();
         ShipmentStatus newStatus = request.estado();
         if (!TRANSICIONES_PERMITIDAS.getOrDefault(currentStatus, Set.of()).contains(newStatus)) {
@@ -89,7 +95,9 @@ public class ShipmentService {
                     .formatted(currentStatus, newStatus));
         }
         shipment.cambiarEstado(newStatus);
-        return ShipmentResponse.from(shipmentRepository.save(shipment));
+        Shipment saved = shipmentRepository.save(shipment);
+        outbox.record(saved, "shipment.status_changed");
+        return ShipmentResponse.from(saved);
     }
 
     private Shipment findEntityById(Long id) {
