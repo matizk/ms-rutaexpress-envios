@@ -1,6 +1,6 @@
 # RutaExpress EV2: punto de entrada para continuar en equipo
 
-Actualizado: 16-10-2026. Leer este archivo antes de cambiar infraestructura o pedirle a otra IA que continúe. **Código integrado no significa proyecto desplegado ni evaluación terminada.** Esta revisión no ha usado credenciales AWS/Azure ni ha certificado el trabajo cloud de otros integrantes.
+Actualizado: 17-10-2026 por el cambio de ramas acordado. Las pruebas funcionales registradas corresponden al 16-10-2026; el cambio de organización no modifica el código de la aplicación. Leer este archivo antes de cambiar infraestructura o pedirle a otra IA que continúe. **Código integrado no significa proyecto desplegado ni evaluación terminada.** Esta revisión no ha usado credenciales AWS/Azure ni ha certificado el trabajo cloud de otros integrantes.
 
 ## 1. Qué pide esta entrega
 
@@ -23,16 +23,16 @@ El administrador Cognito registra un servicio con cupos y una solicitud **CREADO
 
 No confundir el comprobante CREADO con aceptación ni la aceptación con entrega. Notificaciones son registros internos, no correos enviados. Dos nodos en una EC2 y colas classic NO acreditan alta disponibilidad ni replicación de mensajes.
 
-## 3. Dónde está el avance: desarrollar desde develop
+## 3. Dónde está el avance y dónde trabajar
 
-Los seis repositorios son públicos bajo https://github.com/matizk. La rama coordinada es **develop**, no main. Se conserva el historial de las features y los PR originales:
+Los seis repositorios son públicos bajo https://github.com/matizk. La rama coordinada de integración es **desarrollo**, no main. **matizk** es nuestra rama personal de trabajo; cada compañero conserva/utiliza la suya y abre PR hacia desarrollo. La antigua rama develop se renombró, sin reescribir commits. Se conservan los PR originales del 16-10-2026; sus nombres anteriores son historia, no instrucciones para recrear esas ramas:
 
 - [Frontend #1](https://github.com/matizk/frontend-rutaexpress/pull/1).
 - [BFF #2](https://github.com/matizk/ms-rutaexpress-bff/pull/2).
 - [Envíos #2](https://github.com/matizk/ms-rutaexpress-shipments/pull/2).
 - [Mensajería #1](https://github.com/matizk/ms-rutaexpress-messaging/pull/1).
 
-Comprobar que figuren fusionados a develop y revisar sus Checks. Catálogo y Reportes no necesitaron cambios funcionales ni PR vacíos. `main` conserva la entrega estable anterior; Mensajería main contiene su base inicial. **No hay release final EV2 todavía.** Las guías/evidencias antiguas que dicen “sin push” o “PR borrador” documentan aquella pasada, no el estado vivo de GitHub.
+Los cuatro PR originales quedaron fusionados; su base histórica puede mostrar el nombre anterior. Consultar los Checks y la rama desarrollo para el estado actual. Catálogo y Reportes no necesitaron cambios funcionales EV2; el ajuste de ramas sí actualiza su documentación. `main` conserva la entrega estable anterior; Mensajería main contiene su base inicial. **No hay release final EV2 todavía.** Las guías/evidencias antiguas que dicen “sin push” o “PR borrador” documentan aquella pasada, no el estado vivo de GitHub. [Registro del cambio de ramas](evidencias/CAMBIO_DE_RAMAS_2026-10-17.md).
 
 Para instalar Git, Docker Desktop (motor Linux), PowerShell 7 y descargar las seis carpetas hermanas con los comandos exactos: [PREPARACION_EQUIPO_EV2.md, secciones 1–3](PREPARACION_EQUIPO_EV2.md). Ejecutar con Docker evita instalar Java, Maven, Node, PostgreSQL o RabbitMQ en Windows. Hace falta internet y recursos suficientes para construir las imágenes.
 
@@ -57,7 +57,7 @@ Azure permanece deshabilitado hasta recibir los valores reales. Una revisión co
 ## 5. Trabajo del responsable de Azure
 
 1. Inventariar lo ya creado en el tenant institucional; no duplicar registros a ciegas. Obtener Tenant ID, SPA Client ID y API Client ID: son tres UUID distintos en función (SPA y API deben ser aplicaciones diferentes).
-2. Seguir [frontend-rutaexpress/docs/AZURE_OPERADOR.md](https://github.com/matizk/frontend-rutaexpress/blob/develop/docs/AZURE_OPERADOR.md). SPA con callback exacto `http://localhost:4200/auth/azure`; API con access tokens v2, URI `api://UUID-API`, scope delegado `operator.access` y permiso concedido al frontend.
+2. Seguir [frontend-rutaexpress/docs/AZURE_OPERADOR.md](https://github.com/matizk/frontend-rutaexpress/blob/desarrollo/docs/AZURE_OPERADOR.md). SPA con callback exacto `http://localhost:4200/auth/azure`; API con access tokens v2, URI `api://UUID-API`, scope delegado `operator.access` y permiso concedido al frontend.
 3. Verificar consentimiento y políticas del tenant. Si requiere administrador institucional, pedir autorización; no comprar Premium ni eludir controles. No se exige inventar usuarios o grupos nuevos.
 4. Pasar al equipo los tres IDs y el nombre del scope, NO contraseña, client secret ni tokens. En Envíos ejecutar con los UUID reales:
 
@@ -77,7 +77,7 @@ Los textos UUID son marcadores: reemplazarlos, no ejecutarlos literalmente. Si l
 
 Orden de trabajo:
 
-1. Descargar/actualizar `develop` coordinado; revisar capacidad de EC2 y Docker Compose Linux. El paquete propone cinco backends y dos Rabbit en EC2 para facilitar las llamadas internas, NO afirma que la profesora obligue a subir todos. Si se usa otra distribución, documentar y probar todas las conexiones necesarias.
+1. Descargar/actualizar `desarrollo` coordinado; revisar capacidad de EC2 y Docker Compose Linux. El paquete propone cinco backends y dos Rabbit en EC2 para facilitar las llamadas internas, NO afirma que la profesora obligue a subir todos. Si se usa otra distribución, documentar y probar todas las conexiones necesarias.
 2. RDS PostgreSQL privado: puerto 5432 solo desde SG de EC2; obtener CA oficial y usar TLS `verify-full`. `crear-bases.sql` prepara tres bases/propietarios separados sin borrar existentes; las aplicaciones no usan el usuario maestro. Bases nuevas no contienen el catálogo de otro computador.
 3. Crear `.env.aws` privado desde el ejemplo, completar RDS/IDs Azure/Cognito y secretos propios distintos. No enviar el archivo al chat/GitHub. Respetar claves ya asociadas a volúmenes Rabbit y bases existentes.
 4. Revisar Compose AWS, arrancar según la guía y comprobar salud REAL de cinco APIs y conexión a RDS. Rabbit debe mostrar dos nodos, tres colas funcionales, tres DLQ y direct/topic. Los microservicios/DB/Management no se abren a internet.
@@ -111,10 +111,10 @@ Guardar capturas/resultado con fecha y entorno: login institucional sin secretos
 
 ## 8. Cerrar Gitflow y entrega
 
-Trabajo nuevo: `develop` actualizado → rama `codex/feature-descripcion` → commits propios reales → PR a develop → revisión y CI → merge commit. No atribuir commits a otros ni usar force-push. Cambiar un `.env` privado no exige inventar un commit; sí documentar configuración reproducible sin secretos.
+Trabajo nuevo: actualizar la rama personal desde desarrollo → trabajar en `matizk` en esta copia (los compañeros usan las suyas) → commits propios reales → PR a desarrollo → revisión y CI → merge commit. Se deja de crear ramas con el prefijo anterior. No atribuir commits a otros ni usar force-push. Cambiar un `.env` privado no exige inventar un commit; sí documentar configuración reproducible sin secretos.
 
-Cuando el recorrido institucional/cloud y las evidencias estén aprobados, crear la rama `codex/release-<version-acordada>`, revisar PR a main, fusionar y sincronizar develop. No etiquetar una versión como terminada mientras falten estas pruebas. Revisar acceso de la profesora a los repositorios y enlaces de entrega con el equipo.
+Cuando el recorrido institucional/cloud y las evidencias estén aprobados, crear la rama `release/<version-acordada>`, revisar PR a main, fusionar y sincronizar desarrollo. Una corrección urgente usa `hotfix/<descripcion>`. No etiquetar una versión como terminada mientras falten estas pruebas. Revisar acceso de la profesora a los repositorios y enlaces de entrega con el equipo.
 
 ## 9. Mensaje inicial para la IA de quien continúe
 
-> Continúa RutaExpress EV2 sin reescribir lo que funciona. Lee en develop de matizk/ms-rutaexpress-shipments: CONTINUAR_EV2_EQUIPO.md, PREPARACION_EQUIPO_EV2.md, docs/ALCANCE_EV2.md y deploy/aws/README.md; además frontend-rutaexpress/docs/AZURE_OPERADOR.md. Descarga los seis repositorios como carpetas hermanas. Primero inspecciona ramas, cambios propios y recursos cloud YA existentes. Angular queda local, Azure autentica al operador y AWS aloja servicio/Rabbit/RDS/API Manager. El código local está preparado y probado, pero login Duoc y cloud siguen sin certificarse en esta revisión. Verifica lo que ya tenemos antes de crear recursos; pide IDs/configuración no secretos. No cambies main, borres datos, abras puertos internos, desactives JWT/TLS ni generes costos sin autorización. Trabaja por feature/PR a develop. Completa la configuración que corresponda a mi cuenta, prueba el recorrido real y entrega evidencias redactadas y pendientes honestos.
+> Continúa RutaExpress EV2 sin reescribir lo que funciona. Lee en la rama desarrollo de matizk/ms-rutaexpress-shipments: CONTINUAR_EV2_EQUIPO.md, PREPARACION_EQUIPO_EV2.md, docs/ALCANCE_EV2.md y deploy/aws/README.md; además frontend-rutaexpress/docs/AZURE_OPERADOR.md. Descarga los seis repositorios como carpetas hermanas. Primero inspecciona ramas, cambios propios y recursos cloud YA existentes. Angular queda local, Azure autentica al operador y AWS aloja servicio/Rabbit/RDS/API Manager. El código local está preparado y probado, pero login Duoc y cloud siguen sin certificarse en esta revisión. Verifica lo que ya tenemos antes de crear recursos; pide IDs/configuración no secretos. No cambies main, borres datos, abras puertos internos, desactives JWT/TLS ni generes costos sin autorización. Trabaja en la rama personal acordada (matizk para el propietario; los compañeros usan las suyas) y PR a desarrollo; no recrees ramas antiguas. Completa la configuración que corresponda a mi cuenta, prueba el recorrido real y entrega evidencias redactadas y pendientes honestos.
