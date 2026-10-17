@@ -35,7 +35,7 @@ EC2, RDS, almacenamiento/backups, trafico, API Gateway, logs y, si se elige, ALB
 ## 1. Coordinar y obtener valores reales
 
 - Repositorios: cinco backends y frontend como carpetas hermanas, en la versión de integración **desarrollo** tras comprobar la fusión de los PR EV2; no en main. Mensajeria: https://github.com/matizk/ms-rutaexpress-mensajeria. Seguir [descarga EV2](../../PREPARACION_EQUIPO_EV2.md) para clonar las ramas coordinadas. No copiar `.env` al repositorio ni desplegar por el solo hecho de integrar un PR.
-- Azure: tenant ID, SPA client ID, API client ID (tres UUID publicos), permiso delegado `operator.access`, API con access tokens v2, consentimiento y callback SPA `http://localhost:4200/auth/azure`. Seguir `interfaz-rutaexpress/docs/AZURE_OPERADOR.md`. No usar tokens Graph ni ID tokens, ni pedir que envien tokens/contrasenas por chat.
+- Azure: tenant ID, SPA client ID, API client ID (tres UUID publicos), permiso delegado `operator.access`, API con access tokens v2, consentimiento y callback SPA `http://localhost:4200/auth/azure`. Seguir `frontend-rutaexpress/docs/AZURE_OPERADOR.md`. No usar tokens Graph ni ID tokens, ni pedir que envien tokens/contrasenas por chat.
 - AWS: region/cuenta autorizada, EC2 Linux con Docker/Compose v2, capacidad de memoria revisada (limites de estos siete contenedores suman unos 4 GiB, mas SO y construccion Maven), endpoint RDS PostgreSQL, bases/usuarios y ruta de ingreso al BFF. No prometer que cabe o compila en una micro gratuita.
 - Cognito anterior: issuer y client ID publicos. Se conserva solo para administracion anterior; no reemplaza Azure en la evaluacion.
 

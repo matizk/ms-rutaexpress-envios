@@ -101,7 +101,7 @@ services:
 
   bff:
     build:
-      context: ../ms-rutaexpress-intermediario
+      context: ../ms-rutaexpress-bff
     environment:
       SERVER_PORT: 8080
       COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI}
@@ -128,7 +128,7 @@ services:
 
   frontend:
     build:
-      context: ../interfaz-rutaexpress
+      context: ../frontend-rutaexpress
     ports:
       - "4200:80"
     depends_on:

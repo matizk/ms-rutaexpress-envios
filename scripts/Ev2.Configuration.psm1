@@ -45,7 +45,7 @@ function Test-Ev2Configuration {
     $checks = New-Object 'System.Collections.Generic.List[object]'
     $root = [IO.Path]::GetFullPath($ShipmentsDirectory)
     $parent = Split-Path -Parent $root
-    foreach ($repo in @('interfaz-rutaexpress','ms-rutaexpress-intermediario','ms-rutaexpress-catalogo',
+    foreach ($repo in @('frontend-rutaexpress','ms-rutaexpress-bff','ms-rutaexpress-catalogo',
             'ms-rutaexpress-envios','ms-rutaexpress-mensajeria','ms-rutaexpress-reportes')) {
         $dockerfile = Join-Path (Join-Path $parent $repo) 'Dockerfile'
         $state = if (Test-Path -LiteralPath $dockerfile -PathType Leaf) { 'OK' } else { 'ERROR' }
@@ -91,7 +91,7 @@ function Test-Ev2Configuration {
     }
 
     $frontend = $null
-    $frontendPath = Join-Path (Join-Path $parent 'interfaz-rutaexpress') 'public\azure-config.json'
+    $frontendPath = Join-Path (Join-Path $parent 'frontend-rutaexpress') 'public\azure-config.json'
     try {
         $frontend = [IO.File]::ReadAllText($frontendPath) | ConvertFrom-Json -ErrorAction Stop
         if ((Get-Ev2Field $frontend 'enabled') -isnot [bool]) { throw 'enabled debe ser booleano' }

@@ -114,7 +114,7 @@ services:
       shipments: { condition: service_started }
   bff:
     <<: *java
-    build: { context: ../../../ms-rutaexpress-intermediario }
+    build: { context: ../../../ms-rutaexpress-bff }
     environment:
       <<: *identity
       CATALOGO_URL: http://catalog:8081

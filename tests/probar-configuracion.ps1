@@ -11,7 +11,7 @@ function Assert-Test([bool]$Condition, [string]$Message) { if (-not $Condition) 
 function New-Fixture {
     $script:fixtureNumber++
     $directory = Join-Path $sandbox $script:fixtureNumber
-    foreach ($repo in @('interfaz-rutaexpress','ms-rutaexpress-intermediario','ms-rutaexpress-catalogo',
+    foreach ($repo in @('frontend-rutaexpress','ms-rutaexpress-bff','ms-rutaexpress-catalogo',
             'ms-rutaexpress-envios','ms-rutaexpress-mensajeria','ms-rutaexpress-reportes')) {
         $folder = Join-Path $directory $repo
         $null = New-Item -ItemType Directory -Path $folder -Force
@@ -28,7 +28,7 @@ function New-Fixture {
         'COGNITO_CLIENT_ID=abcdefghijklmnopqrstuvw123', 'AZURE_ENABLED=false'
     )
     [IO.File]::WriteAllLines($envFile, $settings, $utf8)
-    $public = Join-Path (Join-Path $directory 'interfaz-rutaexpress') 'public'
+    $public = Join-Path (Join-Path $directory 'frontend-rutaexpress') 'public'
     $null = New-Item -ItemType Directory -Path $public
     $json = Join-Path $public 'azure-config.json'
     [IO.File]::WriteAllText($json, '{"enabled":false}', $utf8)
