@@ -2,7 +2,7 @@
 $ErrorActionPreference='Stop'
 $repo=Split-Path -Parent $PSScriptRoot
 $temporary=Join-Path ([IO.Path]::GetTempPath()) ('rutaexpress-aws-files-'+[guid]::NewGuid().ToString('N'))
-$base=Join-Path $temporary 'ms-rutaexpress-shipments'
+$base=Join-Path $temporary 'ms-rutaexpress-envios'
 $aws=Join-Path $base 'deploy/aws'
 $null=New-Item -ItemType Directory -Path $aws,(Join-Path $base 'scripts'),(Join-Path $aws 'certs') -Force
 $script:passed=0
@@ -84,7 +84,7 @@ try {
         $cert=$request.CreateSelfSigned([DateTimeOffset]::Now.AddMinutes(-1),[DateTimeOffset]::Now.AddDays(1))
         try { [IO.File]::WriteAllText((Join-Path $aws 'certs/global-bundle.pem'),$cert.ExportCertificatePem()) } finally { $cert.Dispose() }
     } finally { $key.Dispose() }
-    foreach ($component in @('catalog','shipments','messaging','report','bff')) {
+    foreach ($component in @('catalogo','envios','mensajeria','reportes','intermediario')) {
         $directory=Join-Path $temporary "ms-rutaexpress-$component"
         $null=New-Item -ItemType Directory -Path $directory -Force
         [IO.File]::WriteAllText((Join-Path $directory 'Dockerfile'),'# fixture')

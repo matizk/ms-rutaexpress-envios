@@ -11,13 +11,13 @@ function Assert-Test([bool]$Condition, [string]$Message) { if (-not $Condition) 
 function New-Fixture {
     $script:fixtureNumber++
     $directory = Join-Path $sandbox $script:fixtureNumber
-    foreach ($repo in @('frontend-rutaexpress','ms-rutaexpress-bff','ms-rutaexpress-catalog',
-            'ms-rutaexpress-shipments','ms-rutaexpress-messaging','ms-rutaexpress-report')) {
+    foreach ($repo in @('interfaz-rutaexpress','ms-rutaexpress-intermediario','ms-rutaexpress-catalogo',
+            'ms-rutaexpress-envios','ms-rutaexpress-mensajeria','ms-rutaexpress-reportes')) {
         $folder = Join-Path $directory $repo
         $null = New-Item -ItemType Directory -Path $folder -Force
         [IO.File]::WriteAllText((Join-Path $folder 'Dockerfile'), '# disposable test fixture', $utf8)
     }
-    $shipments = Join-Path $directory 'ms-rutaexpress-shipments'
+    $shipments = Join-Path $directory 'ms-rutaexpress-envios'
     [IO.File]::WriteAllText((Join-Path $shipments 'compose.ev2.yml'), 'name: rutaexpress-ev2', $utf8)
     $envFile = Join-Path $shipments '.env.ev2'
     $settings = @(
@@ -28,7 +28,7 @@ function New-Fixture {
         'COGNITO_CLIENT_ID=abcdefghijklmnopqrstuvw123', 'AZURE_ENABLED=false'
     )
     [IO.File]::WriteAllLines($envFile, $settings, $utf8)
-    $public = Join-Path (Join-Path $directory 'frontend-rutaexpress') 'public'
+    $public = Join-Path (Join-Path $directory 'interfaz-rutaexpress') 'public'
     $null = New-Item -ItemType Directory -Path $public
     $json = Join-Path $public 'azure-config.json'
     [IO.File]::WriteAllText($json, '{"enabled":false}', $utf8)
@@ -73,7 +73,7 @@ try {
     }
     Run-Test 'Detecta carpeta faltante sin tocar repositorios reales' {
         param($f)
-        $null = Rename-Item -LiteralPath (Join-Path $f.Root 'ms-rutaexpress-report') -NewName 'report-missing'
+        $null = Rename-Item -LiteralPath (Join-Path $f.Root 'ms-rutaexpress-reportes') -NewName 'report-missing'
         Assert-Test (-not (Test-Ev2Configuration $f.Shipments).Ready) 'No detecto el repo ausente'
     }
     Run-Test 'Detecta env ausente' {

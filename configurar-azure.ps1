@@ -10,7 +10,7 @@ foreach ($id in @($TenantId, $FrontendClientId, $ApiClientId)) {
     if ($id -eq [guid]::Empty) { throw 'Los identificadores deben ser los UUID reales de Azure, no ceros ni ejemplos.' }
 }
 $envFile = Join-Path $PSScriptRoot '.env.ev2'
-$frontendFolder = Join-Path (Split-Path -Parent $PSScriptRoot) 'frontend-rutaexpress'
+$frontendFolder = Join-Path (Split-Path -Parent $PSScriptRoot) 'interfaz-rutaexpress'
 $frontendConfig = Join-Path $frontendFolder 'public\azure-config.json'
 if (-not (Test-Path -LiteralPath $envFile)) { throw 'Ejecuta iniciar-ev2.ps1 -SoloConfigurar antes.' }
 if (-not (Test-Path -LiteralPath $frontendConfig)) { throw 'No se encontro el frontend junto a Envios.' }

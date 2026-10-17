@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: catalog_db
       POSTGRES_USER: rutaexpress
-      POSTGRES_PASSWORD: ${CATALOG_DB_PASSWORD:?Run iniciar-ev2.ps1}
+      POSTGRES_PASSWORD: ${CATALOG_DB_PASSWORD:?Ejecutar iniciar-ev2.ps1}
     ports: ["127.0.0.1:15432:5432"]
     volumes: ["ev2-catalog-data:/var/lib/postgresql/data"]
     healthcheck:
@@ -20,7 +20,7 @@ services:
     environment:
       POSTGRES_DB: shipments_db
       POSTGRES_USER: rutaexpress
-      POSTGRES_PASSWORD: ${SHIPMENTS_DB_PASSWORD:?Run iniciar-ev2.ps1}
+      POSTGRES_PASSWORD: ${SHIPMENTS_DB_PASSWORD:?Ejecutar iniciar-ev2.ps1}
     ports: ["127.0.0.1:15433:5432"]
     volumes:
       - ev2-shipments-data:/var/lib/postgresql/data
@@ -36,7 +36,7 @@ services:
     environment:
       POSTGRES_DB: messaging_db
       POSTGRES_USER: rutaexpress
-      POSTGRES_PASSWORD: ${MESSAGING_DB_PASSWORD:?Run iniciar-ev2.ps1}
+      POSTGRES_PASSWORD: ${MESSAGING_DB_PASSWORD:?Ejecutar iniciar-ev2.ps1}
     ports: ["127.0.0.1:15434:5432"]
     volumes: ["ev2-messaging-data:/var/lib/postgresql/data"]
     healthcheck:
@@ -50,9 +50,9 @@ services:
     hostname: rabbitmq-1
     environment: &rabbit-environment
       RABBITMQ_NODENAME: rabbit@rabbitmq-1
-      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Run iniciar-ev2.ps1}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Ejecutar iniciar-ev2.ps1}
       RABBITMQ_DEFAULT_USER: rutaexpress
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Run iniciar-ev2.ps1}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Ejecutar iniciar-ev2.ps1}
     ports:
       - "127.0.0.1:15672:15672"
       - "127.0.0.1:5672:5672"
@@ -86,7 +86,7 @@ services:
       start_period: 20s
 
   catalog:
-    build: { context: ../ms-rutaexpress-catalog }
+    build: { context: ../ms-rutaexpress-catalogo }
     environment:
       PORT: 8081
       SPRING_DATASOURCE_URL: jdbc:postgresql://catalog-db:5432/catalog_db
@@ -125,7 +125,7 @@ services:
       rabbitmq-1: { condition: service_healthy }
 
   messaging:
-    build: { context: ../ms-rutaexpress-messaging }
+    build: { context: ../ms-rutaexpress-mensajeria }
     environment:
       AZURE_ENABLED: ${AZURE_ENABLED:-false}
       AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
@@ -149,7 +149,7 @@ services:
       rabbitmq-2: { condition: service_healthy }
 
   report:
-    build: { context: ../ms-rutaexpress-report }
+    build: { context: ../ms-rutaexpress-reportes }
     environment:
       SHIPMENTS_URL: http://shipments:5000
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
@@ -159,7 +159,7 @@ services:
       shipments: { condition: service_started }
 
   bff:
-    build: { context: ../ms-rutaexpress-bff }
+    build: { context: ../ms-rutaexpress-intermediario }
     environment:
       AZURE_ENABLED: ${AZURE_ENABLED:-false}
       AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
@@ -181,7 +181,7 @@ services:
       messaging: { condition: service_started }
 
   frontend:
-    build: { context: ../frontend-rutaexpress }
+    build: { context: ../interfaz-rutaexpress }
     environment:
       BFF_UPSTREAM: ${FRONTEND_API_UPSTREAM:-http://bff:8080}
     ports: ["127.0.0.1:4200:80"]

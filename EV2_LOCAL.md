@@ -1,6 +1,6 @@
 # EV2 local: PostgreSQL y RabbitMQ
 
-Este stack es independiente del anterior: proyecto `rutaexpress-ev2`, volúmenes nuevos y contraseñas locales aleatorias. Se conservan los volúmenes anteriores. Requiere las seis carpetas de componentes hermanas, incluida la nueva `ms-rutaexpress-messaging`.
+Este stack es independiente del anterior: proyecto `rutaexpress-ev2`, volúmenes nuevos y contraseñas locales aleatorias. Se conservan los volúmenes anteriores. Requiere las seis carpetas de componentes hermanas, incluida la nueva `ms-rutaexpress-mensajeria`.
 
 ## Arrancar
 
@@ -27,7 +27,7 @@ Al crear un envío o cambiar su estado se guarda también un registro en `shipme
 
 La mensajería se habilita con `MESSAGING_ENABLED=true`. El valor predeterminado es false para mantener la ejecución anterior mientras se configura RabbitMQ. No se publican correos ni direcciones de destinatarios. Las notificaciones son internas; no se envía email.
 
-La administración conserva Cognito. La integración Azure ya está preparada en código para `/operador`, con MSAL y validación JWT independiente en BFF, Envíos y Mensajería; sigue deshabilitada hasta obtener los identificadores y permiso del tenant. No se ha probado una cuenta Duoc real. La guía está en `frontend-rutaexpress/docs/AZURE_OPERADOR.md` y la configuración coordinada se genera con `configurar-azure.ps1`. Usuarios independiente queda para la siguiente etapa según la aclaración docente.
+La administración conserva Cognito. La integración Azure ya está preparada en código para `/operador`, con MSAL y validación JWT independiente en BFF, Envíos y Mensajería; sigue deshabilitada hasta obtener los identificadores y permiso del tenant. No se ha probado una cuenta Duoc real. La guía está en `interfaz-rutaexpress/docs/AZURE_OPERADOR.md` y la configuración coordinada se genera con `configurar-azure.ps1`. Usuarios independiente queda para la siguiente etapa según la aclaración docente.
 
 ## Probar de extremo a extremo
 
@@ -62,7 +62,7 @@ Estas operaciones conservan los volúmenes. No es necesario borrar bases para re
 
 Con JDK 21 o superior: `.\mvnw.cmd verify`. Hay pruebas de creación/cambio de estado, publicador con confirms y devoluciones, y transacción conjunta de envío y outbox. La prueba de base embebida valida rollback; `probar-ev2.ps1` comprueba el comportamiento real en PostgreSQL.
 
-Para más detalle del nuevo componente, consultar `README.md` en la carpeta hermana `ms-rutaexpress-messaging`.
+Para más detalle del nuevo componente, consultar `README.md` en la carpeta hermana `ms-rutaexpress-mensajeria`.
 
 ## Conexión con el trabajo cloud del equipo
 
