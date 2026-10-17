@@ -84,7 +84,7 @@ try {
         $cert=$request.CreateSelfSigned([DateTimeOffset]::Now.AddMinutes(-1),[DateTimeOffset]::Now.AddDays(1))
         try { [IO.File]::WriteAllText((Join-Path $aws 'certs/global-bundle.pem'),$cert.ExportCertificatePem()) } finally { $cert.Dispose() }
     } finally { $key.Dispose() }
-    foreach ($component in @('catalogo','envios','mensajeria','reportes','intermediario')) {
+    foreach ($component in @('catalogo','envios','mensajeria','reportes','bff')) {
         $directory=Join-Path $temporary "ms-rutaexpress-$component"
         $null=New-Item -ItemType Directory -Path $directory -Force
         [IO.File]::WriteAllText((Join-Path $directory 'Dockerfile'),'# fixture')

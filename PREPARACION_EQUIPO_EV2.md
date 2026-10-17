@@ -19,8 +19,8 @@ El equipo usa un flujo inspirado en Gitflow con ramas personales: `matizk` es la
 
 ~~~text
 carpeta-del-equipo/
-  interfaz-rutaexpress/
-  ms-rutaexpress-intermediario/
+  frontend-rutaexpress/
+  ms-rutaexpress-bff/
   ms-rutaexpress-catalogo/
   ms-rutaexpress-envios/
   ms-rutaexpress-mensajeria/
@@ -30,8 +30,8 @@ carpeta-del-equipo/
 No mezclar el Compose EV2 con el de EV1 ni poner una carpeta dentro de otra. Este cambio de organización no modifica funciones de Catálogo ni Reportes. Los comandos siguientes descargan la versión de integración para ejecutar el sistema; no son una indicación de que todos deban hacer commits en la rama personal matizk. Usar un directorio nuevo y vacío:
 
 ~~~powershell
-git clone -b desarrollo https://github.com/matizk/interfaz-rutaexpress.git
-git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-intermediario.git
+git clone -b desarrollo https://github.com/matizk/frontend-rutaexpress.git
+git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-bff.git
 git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-catalogo.git
 git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-envios.git
 git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-mensajeria.git
@@ -60,18 +60,18 @@ En el PC de Matizk se continúa con `git switch matizk`, actualizando primero de
 
 ### Si sus carpetas o enlaces aún tienen los nombres anteriores
 
-Los seis repositorios se renombraron el 17-10-2026 conservando historial y colaboradores. No necesitan descargar todo otra vez si ya tienen una copia; primero guardar su trabajo y detener sus procesos locales.
+Los nombres técnicos originales frontend-rutaexpress y ms-rutaexpress-bff se conservan. Los cuatro componentes de dominio usan nombres en español. Si ya tienen copias, no necesitan descargarlas de nuevo; primero guardar su trabajo y detener sus procesos locales. Si su carpeta ya tiene el nombre vigente, no renombrarla.
 
 | Nombre anterior | Nombre vigente de repositorio y carpeta |
 | --- | --- |
-| interfaz-rutaexpress | interfaz-rutaexpress |
-| ms-rutaexpress-intermediario | ms-rutaexpress-intermediario |
-| ms-rutaexpress-catalogo | ms-rutaexpress-catalogo |
-| ms-rutaexpress-envios | ms-rutaexpress-envios |
-| ms-rutaexpress-mensajeria | ms-rutaexpress-mensajeria |
-| ms-rutaexpress-reportes | ms-rutaexpress-reportes |
+| interfaz-rutaexpress (nombre temporal retirado) | frontend-rutaexpress |
+| ms-rutaexpress-intermediario (nombre temporal retirado) | ms-rutaexpress-bff |
+| ms-rutaexpress-catalog | ms-rutaexpress-catalogo |
+| ms-rutaexpress-shipments | ms-rutaexpress-envios |
+| ms-rutaexpress-messaging | ms-rutaexpress-mensajeria |
+| ms-rutaexpress-report | ms-rutaexpress-reportes |
 
-Desde la carpeta que contiene las seis copias, renombrar cada carpeta según la tabla, sin combinarla con otra que ya exista. Por ejemplo: `Rename-Item -LiteralPath './interfaz-rutaexpress' -NewName 'interfaz-rutaexpress'`. Después, dentro de CADA repositorio, ejecutar `git remote set-url origin https://github.com/matizk/NOMBRE-VIGENTE.git`, sustituyendo NOMBRE-VIGENTE por su nombre de la tabla; revisar `git remote -v`, ejecutar `git fetch origin --prune` y actualizar su rama sin forzar. Si hay divergencia, coordinar antes de fusionar.
+Desde la carpeta que contiene las seis copias, renombrar solo las carpetas que aún tengan un nombre anterior, sin combinarlas con otra existente. Por ejemplo: `Rename-Item -LiteralPath './ms-rutaexpress-messaging' -NewName 'ms-rutaexpress-mensajeria'`. Si ya usan frontend-rutaexpress y ms-rutaexpress-bff, mantenerlas. Después, dentro de CADA repositorio, ejecutar `git remote set-url origin https://github.com/matizk/NOMBRE-VIGENTE.git`, sustituyendo NOMBRE-VIGENTE por su nombre de la tabla; revisar `git remote -v`, ejecutar `git fetch origin --prune` y actualizar su rama sin forzar. Si hay divergencia, coordinar antes de fusionar.
 
 Mantener las seis carpetas como hermanas: Compose y los scripts ya usan estos nombres. Los enlaces web anteriores redirigen, pero los comandos nuevos utilizan los nombres vigentes. No cambiar nombres internos de contenedores, bases, volúmenes ni rutas de API; esos identificadores conservan compatibilidad con los datos existentes.
 
@@ -109,7 +109,7 @@ El diagnóstico es de lectura y muestra estados, no contraseñas, tokens ni dato
 - Nombre del scope delegado, actualmente operator.access.
 - Confirmación del consentimiento/permisos, token API v2 y callback SPA http://localhost:4200/auth/azure.
 
-Son identificadores/configuración, no contraseñas ni client secrets. La guía detallada está en interfaz-rutaexpress/docs/AZURE_OPERADOR.md. Configurar desde Envíos con los valores reales:
+Son identificadores/configuración, no contraseñas ni client secrets. La guía detallada está en frontend-rutaexpress/docs/AZURE_OPERADOR.md. Configurar desde Envíos con los valores reales:
 
 ~~~powershell
 .\configurar-azure.ps1 -TenantId 'UUID-TENANT-REAL' -FrontendClientId 'UUID-SPA-REAL' -ApiClientId 'UUID-API-REAL'

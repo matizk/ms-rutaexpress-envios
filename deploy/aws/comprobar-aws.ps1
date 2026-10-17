@@ -25,7 +25,7 @@ try {
     foreach ($certificate in $bundle) { $certificate.Dispose() }
 }
 catch { throw 'El archivo CA no contiene un certificado PEM valido. No desactivar TLS para resolverlo.' }
-foreach ($repo in @('ms-rutaexpress-catalogo','ms-rutaexpress-envios','ms-rutaexpress-mensajeria','ms-rutaexpress-reportes','ms-rutaexpress-intermediario')) {
+foreach ($repo in @('ms-rutaexpress-catalogo','ms-rutaexpress-envios','ms-rutaexpress-mensajeria','ms-rutaexpress-reportes','ms-rutaexpress-bff')) {
     if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot "../../../$repo/Dockerfile"))) { throw "Falta carpeta hermana $repo con Dockerfile." }
 }
 if (-not $SinDocker) {

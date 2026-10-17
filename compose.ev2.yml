@@ -159,7 +159,7 @@ services:
       shipments: { condition: service_started }
 
   bff:
-    build: { context: ../ms-rutaexpress-intermediario }
+    build: { context: ../ms-rutaexpress-bff }
     environment:
       AZURE_ENABLED: ${AZURE_ENABLED:-false}
       AZURE_TENANT_ID: ${AZURE_TENANT_ID:-}
@@ -181,7 +181,7 @@ services:
       messaging: { condition: service_started }
 
   frontend:
-    build: { context: ../interfaz-rutaexpress }
+    build: { context: ../frontend-rutaexpress }
     environment:
       BFF_UPSTREAM: ${FRONTEND_API_UPSTREAM:-http://bff:8080}
     ports: ["127.0.0.1:4200:80"]

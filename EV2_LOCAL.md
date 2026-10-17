@@ -27,7 +27,7 @@ Al crear un envío o cambiar su estado se guarda también un registro en `shipme
 
 La mensajería se habilita con `MESSAGING_ENABLED=true`. El valor predeterminado es false para mantener la ejecución anterior mientras se configura RabbitMQ. No se publican correos ni direcciones de destinatarios. Las notificaciones son internas; no se envía email.
 
-La administración conserva Cognito. La integración Azure ya está preparada en código para `/operador`, con MSAL y validación JWT independiente en BFF, Envíos y Mensajería; sigue deshabilitada hasta obtener los identificadores y permiso del tenant. No se ha probado una cuenta Duoc real. La guía está en `interfaz-rutaexpress/docs/AZURE_OPERADOR.md` y la configuración coordinada se genera con `configurar-azure.ps1`. Usuarios independiente queda para la siguiente etapa según la aclaración docente.
+La administración conserva Cognito. La integración Azure ya está preparada en código para `/operador`, con MSAL y validación JWT independiente en BFF, Envíos y Mensajería; sigue deshabilitada hasta obtener los identificadores y permiso del tenant. No se ha probado una cuenta Duoc real. La guía está en `frontend-rutaexpress/docs/AZURE_OPERADOR.md` y la configuración coordinada se genera con `configurar-azure.ps1`. Usuarios independiente queda para la siguiente etapa según la aclaración docente.
 
 ## Probar de extremo a extremo
 
