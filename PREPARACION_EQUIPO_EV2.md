@@ -15,7 +15,7 @@ Si Windows bloquea scripts por política de ejecución, no cambiar políticas gl
 
 ## 2. Descargar todo en carpetas hermanas
 
-El avance EV2 usa Gitflow. La versión coordinada de integración es `develop`, recibida por PR desde `codex/feature-ev2-mensajeria`; `main` conserva la entrega anterior (en Mensajería, solo la base inicial). Comprobar la fusión en los cuatro PR enlazados en [CONTINUAR_EV2_EQUIPO.md](CONTINUAR_EV2_EQUIPO.md). Clonar las seis carpetas de componentes en el mismo directorio, conservando estos nombres:
+El equipo usa un flujo inspirado en Gitflow con ramas personales: `matizk` es la rama de trabajo de esta copia y `desarrollo` reúne la integración por PR. Los otros integrantes trabajan en sus propias ramas. `main` conserva la entrega anterior (en Mensajería, solo la base inicial). Desde el 17-10-2026, la antigua rama develop se llama desarrollo; los PR y commits anteriores conservan su historia. Clonar las seis carpetas de componentes en el mismo directorio, conservando estos nombres:
 
 ~~~text
 carpeta-del-equipo/
@@ -27,18 +27,36 @@ carpeta-del-equipo/
   ms-rutaexpress-report/
 ~~~
 
-No mezclar el Compose EV2 con el de EV1 ni poner una carpeta dentro de otra. Catálogo y Reportes no tienen cambios funcionales EV2; su develop coincide con main. Comandos para un directorio nuevo y vacío:
+No mezclar el Compose EV2 con el de EV1 ni poner una carpeta dentro de otra. Este cambio de organización no modifica funciones de Catálogo ni Reportes. Los comandos siguientes descargan la versión de integración para ejecutar el sistema; no son una indicación de que todos deban hacer commits en la rama personal matizk. Usar un directorio nuevo y vacío:
 
 ~~~powershell
-git clone -b develop https://github.com/matizk/frontend-rutaexpress.git
-git clone -b develop https://github.com/matizk/ms-rutaexpress-bff.git
-git clone -b develop https://github.com/matizk/ms-rutaexpress-catalog.git
-git clone -b develop https://github.com/matizk/ms-rutaexpress-shipments.git
-git clone -b develop https://github.com/matizk/ms-rutaexpress-messaging.git
-git clone -b develop https://github.com/matizk/ms-rutaexpress-report.git
+git clone -b desarrollo https://github.com/matizk/frontend-rutaexpress.git
+git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-bff.git
+git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-catalog.git
+git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-shipments.git
+git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-messaging.git
+git clone -b desarrollo https://github.com/matizk/ms-rutaexpress-report.git
 ~~~
 
-Si ya tienen copias con trabajo propio, NO volver a clonar encima ni resetear: revisar git status/fetch y coordinar la base. Pasar a develop mediante un cambio de rama seguro; ver [CONTRIBUTING.md](CONTRIBUTING.md). No se ha hecho una release ni se debe desplegar automáticamente por publicar código. Las features originales se conservan como historial, no como base de trabajo permanente.
+Si ya tienen copias con trabajo propio, NO volver a clonar encima ni resetear: revisar git status/fetch y coordinar la base. Ver [CONTRIBUTING.md](CONTRIBUTING.md). No se ha hecho una release ni se debe desplegar automáticamente por publicar código. Las referencias antiguas totalmente integradas se retiran, pero sus commits y PR se conservan como historial.
+
+### Si ya descargaron la antigua rama develop
+
+Ejecutar dentro de CADA repositorio, después de conservar cualquier trabajo propio:
+
+~~~powershell
+git status
+git fetch origin --prune
+~~~
+
+Si no aparece origin/desarrollo porque clonaron una sola rama, ejecutar `git remote set-branches --add origin desarrollo` y `git fetch origin` antes de seguir.
+
+- Si existe una rama local develop y NO existe desarrollo: `git branch -m develop desarrollo`.
+- Si nunca tuvieron esa rama local: `git switch --track origin/desarrollo` la crea. Si desarrollo ya existe, usar `git switch desarrollo`.
+- Después: `git switch desarrollo`, `git branch --set-upstream-to=origin/desarrollo desarrollo` y `git merge --ff-only origin/desarrollo`.
+- Si Git indica cambios pendientes o divergencia, detenerse y conservarlos; no forzar ni borrar la copia. Coordinar el merge normal.
+
+En el PC de Matizk se continúa con `git switch matizk`, actualizando primero desde origin/desarrollo como indica CONTRIBUTING. Los compañeros usan SUS ramas para modificar código y PR hacia desarrollo. Para revisar una instalación sin desarrollar basta permanecer en desarrollo.
 
 No subir .env.ev2, contraseñas, tokens, credenciales AWS, node_modules ni los modelos de transcripción. Cada computador genera sus propias contraseñas locales.
 
