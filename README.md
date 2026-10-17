@@ -2,7 +2,7 @@
 
 > **Estás viendo main: versión estable de EV1.** El avance de EV2 y las instrucciones actuales para descargar las seis carpetas están en [desarrollo](https://github.com/matizk/ms-rutaexpress-envios/tree/desarrollo) y en la [guía central del equipo](https://github.com/matizk/ms-rutaexpress-envios/blob/desarrollo/CONTINUAR_EV2_EQUIPO.md). Esta actualización de main solo cambia documentos; no publica la implementación EV2 ni acredita despliegue cloud.
 
-Los repositorios y carpetas se renombraron al español el 17-10-2026. Ver [COLABORACION.md](COLABORACION.md) para el flujo `matizk → desarrollo → entrega → main`. Las instrucciones EV1 que siguen son antecedentes de esta versión, no la configuración del sistema EV2 con los nuevos nombres. Para ejecutar la integración actual, seguir exclusivamente la guía de desarrollo.
+Los componentes de dominio usan nombres en español; frontend-rutaexpress y ms-rutaexpress-bff conservan sus nombres técnicos originales. Ver [COLABORACION.md](COLABORACION.md) para el flujo `matizk → desarrollo → release → main`. Las instrucciones EV1 que siguen son antecedentes de esta versión, no la configuración del sistema EV2 con los nuevos nombres. Para ejecutar la integración actual, seguir exclusivamente la guía de desarrollo.
 
 Microservicio de envíos de RutaExpress para la Entrega 1 de DSY1107.
 
