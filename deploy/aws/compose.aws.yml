@@ -64,7 +64,7 @@ services:
       start_period: 30s
   catalog:
     <<: *java
-    build: { context: ../../../ms-rutaexpress-catalog }
+    build: { context: ../../../ms-rutaexpress-catalogo }
     environment:
       PORT: 8081
       SPRING_DATASOURCE_URL: jdbc:postgresql://${RDS_HOST:?Falta endpoint RDS}:5432/catalog_db?sslmode=verify-full&sslrootcert=/run/rds-ca/global-bundle.pem
@@ -91,7 +91,7 @@ services:
       rabbitmq-1: { condition: service_healthy }
   messaging:
     <<: *java
-    build: { context: ../../../ms-rutaexpress-messaging }
+    build: { context: ../../../ms-rutaexpress-mensajeria }
     environment:
       <<: *identity
       SPRING_DATASOURCE_URL: jdbc:postgresql://${RDS_HOST}:5432/messaging_db?sslmode=verify-full&sslrootcert=/run/rds-ca/global-bundle.pem
@@ -106,7 +106,7 @@ services:
       rabbitmq-2: { condition: service_healthy }
   report:
     <<: *java
-    build: { context: ../../../ms-rutaexpress-report }
+    build: { context: ../../../ms-rutaexpress-reportes }
     environment:
       SHIPMENTS_URL: http://shipments:5000
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
@@ -114,7 +114,7 @@ services:
       shipments: { condition: service_started }
   bff:
     <<: *java
-    build: { context: ../../../ms-rutaexpress-bff }
+    build: { context: ../../../ms-rutaexpress-intermediario }
     environment:
       <<: *identity
       CATALOGO_URL: http://catalog:8081

@@ -12,12 +12,12 @@ Mostrar solicitud, aceptación del operador y respuesta/ticket; dos nodos Rabbit
 
 | Componente | Responsabilidad |
 | --- | --- |
-| frontend-rutaexpress | Angular local :4200. Inicio y tracking públicos, Operación/Catálogo/Reportes administrativos, bandeja /operador y panel de mensajería. |
-| ms-rutaexpress-bff | Puerta de entrada :8080. Enruta y valida tokens/permisos; el navegador no llama directamente a microservicios. |
-| ms-rutaexpress-catalog | Servicios, tarifas y cupos. Un envío necesita un servicio existente con cupos. |
-| ms-rutaexpress-shipments | Solicitudes/envíos, cambios de estado y outbox transaccional. Incluye el módulo de usuarios anterior, no un microservicio independiente. También reúne Compose, scripts y guías del sistema. |
-| ms-rutaexpress-messaging | Nuevo servicio: notificaciones internas, tickets y auditoría en PostgreSQL; tres consumidores y API administradora RabbitMQ. |
-| ms-rutaexpress-report | Indicadores calculados desde Envíos. No tiene una cuarta base propia. |
+| interfaz-rutaexpress | Angular local :4200. Inicio y tracking públicos, Operación/Catálogo/Reportes administrativos, bandeja /operador y panel de mensajería. |
+| ms-rutaexpress-intermediario | Puerta de entrada :8080. Enruta y valida tokens/permisos; el navegador no llama directamente a microservicios. |
+| ms-rutaexpress-catalogo | Servicios, tarifas y cupos. Un envío necesita un servicio existente con cupos. |
+| ms-rutaexpress-envios | Solicitudes/envíos, cambios de estado y outbox transaccional. Incluye el módulo de usuarios anterior, no un microservicio independiente. También reúne Compose, scripts y guías del sistema. |
+| ms-rutaexpress-mensajeria | Nuevo servicio: notificaciones internas, tickets y auditoría en PostgreSQL; tres consumidores y API administradora RabbitMQ. |
+| ms-rutaexpress-reportes | Indicadores calculados desde Envíos. No tiene una cuarta base propia. |
 
 El administrador Cognito registra un servicio con cupos y una solicitud **CREADO**. El operador entra con Azure, revisa y acepta: queda **ACEPTADO**. Envíos guarda el cambio y el evento pendiente en la misma transacción; el publicador espera confirmación de RabbitMQ y reintenta. Cada consumidor persiste su resultado y después hace ACK; deduplica por dominio/evento. Contratos inválidos o errores agotados van a DLQ. Angular espera el ticket real de aceptación y permite descargarlo. Tracking público consulta el mismo código sin sesión.
 
@@ -27,12 +27,12 @@ No confundir el comprobante CREADO con aceptación ni la aceptación con entrega
 
 Los seis repositorios son públicos bajo https://github.com/matizk. La rama coordinada de integración es **desarrollo**, no main. **matizk** es nuestra rama personal de trabajo; cada compañero conserva/utiliza la suya y abre PR hacia desarrollo. La antigua rama develop se renombró, sin reescribir commits. Se conservan los PR originales del 16-10-2026; sus nombres anteriores son historia, no instrucciones para recrear esas ramas:
 
-- [Frontend #1](https://github.com/matizk/frontend-rutaexpress/pull/1).
-- [BFF #2](https://github.com/matizk/ms-rutaexpress-bff/pull/2).
-- [Envíos #2](https://github.com/matizk/ms-rutaexpress-shipments/pull/2).
-- [Mensajería #1](https://github.com/matizk/ms-rutaexpress-messaging/pull/1).
+- [Frontend #1](https://github.com/matizk/interfaz-rutaexpress/pull/1).
+- [BFF #2](https://github.com/matizk/ms-rutaexpress-intermediario/pull/2).
+- [Envíos #2](https://github.com/matizk/ms-rutaexpress-envios/pull/2).
+- [Mensajería #1](https://github.com/matizk/ms-rutaexpress-mensajeria/pull/1).
 
-Los cuatro PR originales quedaron fusionados; su base histórica puede mostrar el nombre anterior. Consultar los Checks y la rama desarrollo para el estado actual. Catálogo y Reportes no necesitaron cambios funcionales EV2; el ajuste de ramas sí actualiza su documentación. `main` conserva la entrega estable anterior; Mensajería main contiene su base inicial. **No hay release final EV2 todavía.** Las guías/evidencias antiguas que dicen “sin push” o “PR borrador” documentan aquella pasada, no el estado vivo de GitHub. [Registro del cambio de ramas](evidencias/CAMBIO_DE_RAMAS_2026-10-17.md).
+Los cuatro PR originales quedaron fusionados; su base histórica puede mostrar el nombre anterior. Consultar los Comprobaciones y la rama desarrollo para el estado actual. Catálogo y Reportes no necesitaron cambios funcionales EV2; el ajuste de ramas sí actualiza su documentación. `main` conserva la entrega estable anterior; Mensajería main contiene su base inicial. **No hay entrega final EV2 todavía.** Las guías/evidencias antiguas que dicen “sin push” o “PR borrador” documentan aquella pasada, no el estado vivo de GitHub. [Registro del cambio de ramas](evidencias/CAMBIO_DE_RAMAS_2026-10-17.md).
 
 Para instalar Git, Docker Desktop (motor Linux), PowerShell 7 y descargar las seis carpetas hermanas con los comandos exactos: [PREPARACION_EQUIPO_EV2.md, secciones 1–3](PREPARACION_EQUIPO_EV2.md). Ejecutar con Docker evita instalar Java, Maven, Node, PostgreSQL o RabbitMQ en Windows. Hace falta internet y recursos suficientes para construir las imágenes.
 
@@ -40,7 +40,7 @@ Si ya tienen código propio, revisar `git status`, conservarlo y coordinar antes
 
 ## 4. Verificación local reproducible
 
-En la carpeta ms-rutaexpress-shipments, PowerShell:
+En la carpeta ms-rutaexpress-envios, PowerShell:
 
 ```powershell
 ./iniciar-ev2.ps1 -SoloConfigurar
@@ -57,7 +57,7 @@ Azure permanece deshabilitado hasta recibir los valores reales. Una revisión co
 ## 5. Trabajo del responsable de Azure
 
 1. Inventariar lo ya creado en el tenant institucional; no duplicar registros a ciegas. Obtener Tenant ID, SPA Client ID y API Client ID: son tres UUID distintos en función (SPA y API deben ser aplicaciones diferentes).
-2. Seguir [frontend-rutaexpress/docs/AZURE_OPERADOR.md](https://github.com/matizk/frontend-rutaexpress/blob/desarrollo/docs/AZURE_OPERADOR.md). SPA con callback exacto `http://localhost:4200/auth/azure`; API con access tokens v2, URI `api://UUID-API`, scope delegado `operator.access` y permiso concedido al frontend.
+2. Seguir [interfaz-rutaexpress/docs/AZURE_OPERADOR.md](https://github.com/matizk/interfaz-rutaexpress/blob/desarrollo/docs/AZURE_OPERADOR.md). SPA con callback exacto `http://localhost:4200/auth/azure`; API con access tokens v2, URI `api://UUID-API`, scope delegado `operator.access` y permiso concedido al frontend.
 3. Verificar consentimiento y políticas del tenant. Si requiere administrador institucional, pedir autorización; no comprar Premium ni eludir controles. No se exige inventar usuarios o grupos nuevos.
 4. Pasar al equipo los tres IDs y el nombre del scope, NO contraseña, client secret ni tokens. En Envíos ejecutar con los UUID reales:
 
@@ -111,10 +111,10 @@ Guardar capturas/resultado con fecha y entorno: login institucional sin secretos
 
 ## 8. Cerrar Gitflow y entrega
 
-Trabajo nuevo: actualizar la rama personal desde desarrollo → trabajar en `matizk` en esta copia (los compañeros usan las suyas) → commits propios reales → PR a desarrollo → revisión y CI → merge commit. Se deja de crear ramas con el prefijo anterior. No atribuir commits a otros ni usar force-push. Cambiar un `.env` privado no exige inventar un commit; sí documentar configuración reproducible sin secretos.
+Trabajo nuevo: actualizar la rama personal desde desarrollo → trabajar en `matizk` en esta copia (los compañeros usan las suyas) → commits propios reales → PR a desarrollo → revisión y CI → confirmación de fusión. Se deja de crear ramas con el prefijo anterior. No atribuir commits a otros ni usar force-push. Cambiar un `.env` privado no exige inventar un commit; sí documentar configuración reproducible sin secretos.
 
-Cuando el recorrido institucional/cloud y las evidencias estén aprobados, crear la rama `release/<version-acordada>`, revisar PR a main, fusionar y sincronizar desarrollo. Una corrección urgente usa `hotfix/<descripcion>`. No etiquetar una versión como terminada mientras falten estas pruebas. Revisar acceso de la profesora a los repositorios y enlaces de entrega con el equipo.
+Cuando el recorrido institucional/cloud y las evidencias estén aprobados, crear la rama `entrega/<version-acordada>`, revisar PR a main, fusionar y sincronizar desarrollo. Una corrección urgente usa `correccion/<descripcion>`. No etiquetar una versión como terminada mientras falten estas pruebas. Revisar acceso de la profesora a los repositorios y enlaces de entrega con el equipo.
 
 ## 9. Mensaje inicial para la IA de quien continúe
 
-> Continúa RutaExpress EV2 sin reescribir lo que funciona. Lee en la rama desarrollo de matizk/ms-rutaexpress-shipments: CONTINUAR_EV2_EQUIPO.md, PREPARACION_EQUIPO_EV2.md, docs/ALCANCE_EV2.md y deploy/aws/README.md; además frontend-rutaexpress/docs/AZURE_OPERADOR.md. Descarga los seis repositorios como carpetas hermanas. Primero inspecciona ramas, cambios propios y recursos cloud YA existentes. Angular queda local, Azure autentica al operador y AWS aloja servicio/Rabbit/RDS/API Manager. El código local está preparado y probado, pero login Duoc y cloud siguen sin certificarse en esta revisión. Verifica lo que ya tenemos antes de crear recursos; pide IDs/configuración no secretos. No cambies main, borres datos, abras puertos internos, desactives JWT/TLS ni generes costos sin autorización. Trabaja en la rama personal acordada (matizk para el propietario; los compañeros usan las suyas) y PR a desarrollo; no recrees ramas antiguas. Completa la configuración que corresponda a mi cuenta, prueba el recorrido real y entrega evidencias redactadas y pendientes honestos.
+> Continúa RutaExpress EV2 sin reescribir lo que funciona. Lee en la rama desarrollo de matizk/ms-rutaexpress-envios: CONTINUAR_EV2_EQUIPO.md, PREPARACION_EQUIPO_EV2.md, docs/ALCANCE_EV2.md y deploy/aws/README.md; además interfaz-rutaexpress/docs/AZURE_OPERADOR.md. Descarga los seis repositorios como carpetas hermanas. Primero inspecciona ramas, cambios propios y recursos cloud YA existentes. Angular queda local, Azure autentica al operador y AWS aloja servicio/Rabbit/RDS/API Manager. El código local está preparado y probado, pero login Duoc y cloud siguen sin certificarse en esta revisión. Verifica lo que ya tenemos antes de crear recursos; pide IDs/configuración no secretos. No cambies main, borres datos, abras puertos internos, desactives JWT/TLS ni generes costos sin autorización. Trabaja en la rama personal acordada (matizk para el propietario; los compañeros usan las suyas) y PR a desarrollo; no recrees ramas antiguas. Completa la configuración que corresponda a mi cuenta, prueba el recorrido real y entrega evidencias redactadas y pendientes honestos.

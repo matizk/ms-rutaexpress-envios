@@ -36,7 +36,7 @@ services:
 
   catalog:
     build:
-      context: ../ms-rutaexpress-catalog
+      context: ../ms-rutaexpress-catalogo
     environment:
       SERVER_PORT: 8081
       SPRING_DATASOURCE_URL: jdbc:postgresql://catalog-db:5432/catalog_db
@@ -83,7 +83,7 @@ services:
 
   report:
     build:
-      context: ../ms-rutaexpress-report
+      context: ../ms-rutaexpress-reportes
     environment:
       SERVER_PORT: 8082
       SHIPMENTS_URL: http://shipments:5000
@@ -101,7 +101,7 @@ services:
 
   bff:
     build:
-      context: ../ms-rutaexpress-bff
+      context: ../ms-rutaexpress-intermediario
     environment:
       SERVER_PORT: 8080
       COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI}
@@ -128,7 +128,7 @@ services:
 
   frontend:
     build:
-      context: ../frontend-rutaexpress
+      context: ../interfaz-rutaexpress
     ports:
       - "4200:80"
     depends_on:
