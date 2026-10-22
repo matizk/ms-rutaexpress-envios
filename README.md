@@ -1,6 +1,6 @@
 # ms-rutaexpress-envios
 
-> Versión de integración EV2: `desarrollo`, mediante el [PR #2](https://github.com/matizk/ms-rutaexpress-envios/pull/2). `main` conserva EV1 hasta una entrega validada. [Descarga](PREPARACION_EQUIPO_EV2.md), [pendientes del equipo](CONTINUAR_EV2_EQUIPO.md), [Gitflow](COLABORACION.md) y [AWS](deploy/aws/README.md). Cloud/login institucional pendientes de verificación real.
+> Versión de integración EV2: `desarrollo`, mediante el [PR #2](https://github.com/matizk/ms-rutaexpress-envios/pull/2). `main` conserva EV1 hasta una entrega validada. Al 21-10-2026 se completó Azure Duoc → aceptación → ticket → tracking; Daniel confirmó el caso en RDS/RabbitMQ. [Fuentes y pendientes de cierre](evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md), [continuación](CONTINUAR_EV2_EQUIPO.md), [Gitflow](COLABORACION.md) y [AWS](deploy/aws/README.md). Esta actualización documental se prepara en `matizk`; no declara una nueva integración ni despliegue.
 
 Microservicio de envíos de RutaExpress para DSY1107. EV2 agrega aceptación del operador y outbox transaccional; los apartados de EV1 se conservan como antecedente, no como despliegue EV2 verificado.
 
@@ -128,11 +128,11 @@ La respuesta esperada es:
 
 ## Avance EV2: PostgreSQL y RabbitMQ
 
-El stack nuevo, sus pruebas y comandos están en [EV2_LOCAL.md](EV2_LOCAL.md). Ejecutar `iniciar-ev2.ps1` con las seis carpetas de componentes hermanas. Usa un proyecto Compose y volúmenes separados, agrega outbox transaccional y el servicio `ms-rutaexpress-mensajeria`. `probar-ev2.ps1` produce evidencia de datos persistentes, ACK/DLQ, duplicados y recuperación. El login institucional Azure sigue pendiente de integrar con la configuración del equipo.
+El laboratorio local, sus pruebas y comandos están en [EV2_LOCAL.md](EV2_LOCAL.md). Ejecutar `iniciar-ev2.ps1` con las seis carpetas de componentes hermanas solo cuando se elija ese entorno. Usa un proyecto Compose y volúmenes separados, agrega outbox transaccional y el servicio `ms-rutaexpress-mensajeria`. `probar-ev2.ps1` produce evidencia local de datos persistentes, ACK/DLQ, duplicados y recuperación. El acceso institucional contra AWS ya se probó; para repetirlo basta Angular local con el proxy compartido, sin arrancar otro backend.
 
 ## Preparacion AWS EV2 (16-10-2026)
 
-La docente confirmo Angular local, Azure para autenticacion y API Manager/Rabbit/servicio/BD en AWS (RDS para BD). El [paquete AWS](deploy/aws/README.md) contiene Compose separado sin Postgres local, JDBC con TLS verify-full, roles/bases RDS, generador LOCAL de plantilla HTTP API con JWT Azure/Cognito, comprobadores y Compose de frontend local hacia AWS. Está preparado para integración en `desarrollo`; no se ha desplegado en cloud ni se ha cambiado `main`.
+La docente confirmó Angular local, Azure para autenticación del operador y API Manager/Rabbit/servicio/BD en AWS (RDS para BD). El [paquete AWS](deploy/aws/README.md) contiene Compose separado sin Postgres local, JDBC con TLS verify-full, roles/bases RDS, generador LOCAL de plantilla HTTP API con JWT Azure/Cognito, comprobadores y Compose de frontend local hacia AWS. Esta sección describía la preparación del 16-10-2026; el [registro del 21-10-2026](evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md) recoge el despliegue informado por Daniel y la prueba integrada posterior. No volver a crear los recursos ni confundir esa verificación con un cierre de `main`.
 
 Pruebas offline: `./tests/probar-aws.ps1`; agregar `-ConDocker` para validar Compose con datos ficticios sin iniciar contenedores. El SQL antiguo de EV1 descrito arriba no crea el outbox EV2; no aplicarlo como migracion de este paquete. Seguir la guia AWS, que declara ddl-auto=update como limitacion de laboratorio y preserva bases existentes.
 

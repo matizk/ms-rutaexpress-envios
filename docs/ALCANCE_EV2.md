@@ -12,4 +12,8 @@ Confirmacion escrita de la docente recibida el 16-10-2026, contrastada con pauta
 
 No se suben capturas de conversaciones, material docente, audios ni documentos de clase a los repositorios publicos. Los originales se conservan fuera de Git; este resumen recoge solo el alcance tecnico necesario.
 
-Implementado localmente: solicitud, aceptacion, outbox, consumidores/ACK/DLQ, tickets, PostgreSQL y preparacion Azure. Faltan IDs/consentimiento reales, despliegue AWS, pruebas integradas cloud y evidencia final. Un check verde de CI no acredita esos pasos. El ticket de aceptacion no demuestra entrega del envio; notificaciones son registros internos, no correos enviados.
+Estado al 21-10-2026: el integrante completó el caso RX-1792623980566 con Azure Duoc, aceptación, ticket descargado y tracking público ACEPTADO. Daniel confirmó la solicitud/outbox en RDS y las tres recepciones de dominio del evento de aceptación; se atribuye a él esa inspección privada. La revisión repitió consultas públicas de salud, tracking y rechazo sin JWT. Ver [fuentes y pendientes de cierre](../evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md).
+
+La respuesta posterior de la docente permite conservar Admin con Cognito; en EV2 revisa Operador con Azure. No es necesario migrar ambos perfiles a Azure ni crear otro microservicio para resolver la autenticación.
+
+Falta cerrar la revisión/integración del frontend, contrastar todas las evidencias de la pauta, preparar informe/presentación y aprobar la entrega estable. Un check verde de CI no acredita por sí solo esas actividades. El ticket de aceptación no demuestra entrega del envío; las notificaciones son registros internos, no correos enviados.
