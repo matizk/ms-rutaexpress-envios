@@ -1,6 +1,6 @@
 # ms-rutaexpress-envios
 
-> Versión de integración EV2: `desarrollo`, mediante el [PR #2](https://github.com/matizk/ms-rutaexpress-envios/pull/2). `main` conserva EV1 hasta una entrega validada. Al 21-10-2026 se completó Azure Duoc → aceptación → ticket → tracking; Daniel confirmó el caso en RDS/RabbitMQ. [Fuentes y pendientes de cierre](evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md), [continuación](CONTINUAR_EV2_EQUIPO.md), [Gitflow](COLABORACION.md) y [AWS](deploy/aws/README.md). Esta actualización documental se prepara en `matizk`; no declara una nueva integración ni despliegue.
+> Entrega de código EV2 del 22-10-2026: publicación mediante `release/ev2` → PR a `main`, conservando el historial. `main` es la rama estable; `desarrollo` integra y `matizk` es la rama personal. Azure Duoc → aceptación → ticket → tracking ya se completó para `RX-1792623980566`; Daniel confirmó el caso en RDS/RabbitMQ. [Fuentes y límites de la prueba del 21-10-2026](evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md), [estado actualizado y pendientes](CONTINUAR_EV2_EQUIPO.md), [Gitflow](COLABORACION.md) y [AWS](deploy/aws/README.md). Esta promoción no modifica infraestructura ni termina el informe o la presentación.
 
 Microservicio de envíos de RutaExpress para DSY1107. EV2 agrega aceptación del operador y outbox transaccional; los apartados de EV1 se conservan como antecedente, no como despliegue EV2 verificado.
 
