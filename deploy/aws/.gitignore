@@ -1,0 +1,9 @@
+.env*
+!.env.aws.example
+certs/*
+!certs/.gitkeep
+*.generated.json
+api-config.json
+*.pem
+*.key
+*.log

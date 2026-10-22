@@ -17,6 +17,7 @@ import duoc.rutaexpress.shipments.dto.ShipmentResponse;
 import duoc.rutaexpress.shipments.dto.PublicTrackingResponse;
 import duoc.rutaexpress.shipments.exception.BusinessRuleException;
 import duoc.rutaexpress.shipments.repository.ShipmentRepository;
+import duoc.rutaexpress.shipments.messaging.OutboxRecorder;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,11 +36,14 @@ class ShipmentServiceTest {
     @Mock
     private CatalogClient catalogClient;
 
+    @Mock
+    private OutboxRecorder outbox;
+
     private ShipmentService shipmentService;
 
     @BeforeEach
     void setUp() {
-        shipmentService = new ShipmentService(shipmentRepository, catalogClient);
+        shipmentService = new ShipmentService(shipmentRepository, catalogClient, outbox);
     }
 
     @Test
@@ -59,12 +63,13 @@ class ShipmentServiceTest {
         assertEquals("Express", response.servicioNombre());
         assertEquals(ShipmentStatus.CREADO, response.estado());
         verify(catalogClient).reserveCapacity(1L);
+        verify(outbox).record(shipmentCaptor.getValue(), "shipment.created");
     }
 
     @Test
     void allowsTransitionFromCreatedToAccepted() {
         Shipment shipment = shipmentInStatus(ShipmentStatus.CREADO);
-        when(shipmentRepository.findById(10L)).thenReturn(Optional.of(shipment));
+        when(shipmentRepository.findForUpdate(10L)).thenReturn(Optional.of(shipment));
         when(shipmentRepository.save(shipment)).thenReturn(shipment);
 
         ShipmentResponse response = shipmentService.changeStatus(10L,
@@ -72,6 +77,7 @@ class ShipmentServiceTest {
 
         assertEquals(ShipmentStatus.ACEPTADO, response.estado());
         verify(shipmentRepository).save(shipment);
+        verify(outbox).record(shipment, "shipment.status_changed");
     }
 
     @Test
@@ -89,17 +95,29 @@ class ShipmentServiceTest {
     @Test
     void rejectsRouteStatusBeforeAcceptance() {
         Shipment shipment = shipmentInStatus(ShipmentStatus.CREADO);
-        when(shipmentRepository.findById(10L)).thenReturn(Optional.of(shipment));
+        when(shipmentRepository.findForUpdate(10L)).thenReturn(Optional.of(shipment));
 
         assertThrows(BusinessRuleException.class, () -> shipmentService.changeStatus(10L,
                 new ChangeShipmentStatusRequest(ShipmentStatus.EN_RUTA)));
 
         verify(shipmentRepository, never()).save(any(Shipment.class));
+        verify(outbox, never()).record(any(), any());
     }
 
     private CreateShipmentRequest validRequest() {
         return new CreateShipmentRequest("RX-0001", "Ana Pérez", "ana@example.com", "Santiago",
                 "Valparaíso", new BigDecimal("2.50"), 1L);
+    }
+
+    @Test void doesNotConfirmAnAlreadyAcceptedOrCancelledRequestTwice() {
+        for (ShipmentStatus status : new ShipmentStatus[]{ShipmentStatus.ACEPTADO, ShipmentStatus.CANCELADO}) {
+            Shipment shipment = shipmentInStatus(status);
+            when(shipmentRepository.findForUpdate(10L)).thenReturn(Optional.of(shipment));
+            assertThrows(BusinessRuleException.class, () -> shipmentService.changeStatus(10L,
+                    new ChangeShipmentStatusRequest(ShipmentStatus.ACEPTADO)));
+        }
+        verify(shipmentRepository, never()).save(any());
+        verify(outbox, never()).record(any(), any());
     }
 
     private Shipment shipmentInStatus(ShipmentStatus status) {

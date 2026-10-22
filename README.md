@@ -1,10 +1,8 @@
 # ms-rutaexpress-envios
 
-> **Estás viendo main: versión estable de EV1.** El avance de EV2 y las instrucciones actuales para descargar las seis carpetas están en [desarrollo](https://github.com/matizk/ms-rutaexpress-envios/tree/desarrollo) y en la [guía central del equipo](https://github.com/matizk/ms-rutaexpress-envios/blob/desarrollo/CONTINUAR_EV2_EQUIPO.md). Esta actualización de main solo cambia documentos; no publica la implementación EV2 ni acredita despliegue cloud.
+> Entrega de código EV2 del 22-10-2026: publicación mediante `release/ev2` → PR a `main`, conservando el historial. `main` es la rama estable; `desarrollo` integra y `matizk` es la rama personal. Azure Duoc → aceptación → ticket → tracking ya se completó para `RX-1792623980566`; Daniel confirmó el caso en RDS/RabbitMQ. [Fuentes y límites de la prueba del 21-10-2026](evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md), [estado actualizado y pendientes](CONTINUAR_EV2_EQUIPO.md), [Gitflow](COLABORACION.md) y [AWS](deploy/aws/README.md). Esta promoción no modifica infraestructura ni termina el informe o la presentación.
 
-Los componentes de dominio usan nombres en español; frontend-rutaexpress y ms-rutaexpress-bff conservan sus nombres técnicos originales. Ver [COLABORACION.md](COLABORACION.md) para el flujo `matizk → desarrollo → release → main`. Las instrucciones EV1 que siguen son antecedentes de esta versión, no la configuración del sistema EV2 con los nuevos nombres. Para ejecutar la integración actual, seguir exclusivamente la guía de desarrollo.
-
-Microservicio de envíos de RutaExpress para la Entrega 1 de DSY1107.
+Microservicio de envíos de RutaExpress para DSY1107. EV2 agrega aceptación del operador y outbox transaccional; los apartados de EV1 se conservan como antecedente, no como despliegue EV2 verificado.
 
 ## Responsabilidad
 
@@ -52,9 +50,12 @@ un envío no puede pasar a `EN_RUTA` sin haber sido aceptado y enviado previamen
   "emailDestinatario": "ana@example.com",
   "direccionOrigen": "Santiago",
   "direccionDestino": "Valparaíso",
-  "pesoKg": 2.50
+  "pesoKg": 2.50,
+  "servicioId": 1
 }
 ```
+
+`servicioId` debe ser el ID real de un servicio con cupos creado en Catálogo; `1` es solo un ejemplo. En EV2 el cupo se descuenta al aceptar el envío, no al crearlo. El navegador envía las operaciones por el BFF, no directamente al puerto interno del microservicio.
 
 Para cambiar el estado se envía, por ejemplo, `PUT /api/shipments/1/status`:
 
@@ -124,3 +125,19 @@ La respuesta esperada es:
 ```json
 { "status": "UP" }
 ```
+
+## Avance EV2: PostgreSQL y RabbitMQ
+
+El laboratorio local, sus pruebas y comandos están en [EV2_LOCAL.md](EV2_LOCAL.md). Ejecutar `iniciar-ev2.ps1` con las seis carpetas de componentes hermanas solo cuando se elija ese entorno. Usa un proyecto Compose y volúmenes separados, agrega outbox transaccional y el servicio `ms-rutaexpress-mensajeria`. `probar-ev2.ps1` produce evidencia local de datos persistentes, ACK/DLQ, duplicados y recuperación. El acceso institucional contra AWS ya se probó; para repetirlo basta Angular local con el proxy compartido, sin arrancar otro backend.
+
+## Preparacion AWS EV2 (16-10-2026)
+
+La docente confirmó Angular local, Azure para autenticación del operador y API Manager/Rabbit/servicio/BD en AWS (RDS para BD). El [paquete AWS](deploy/aws/README.md) contiene Compose separado sin Postgres local, JDBC con TLS verify-full, roles/bases RDS, generador LOCAL de plantilla HTTP API con JWT Azure/Cognito, comprobadores y Compose de frontend local hacia AWS. Esta sección describía la preparación del 16-10-2026; el [registro del 21-10-2026](evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md) recoge el despliegue informado por Daniel y la prueba integrada posterior. No volver a crear los recursos ni confundir esa verificación con un cierre de `main`.
+
+Pruebas offline: `./tests/probar-aws.ps1`; agregar `-ConDocker` para validar Compose con datos ficticios sin iniciar contenedores. El SQL antiguo de EV1 descrito arriba no crea el outbox EV2; no aplicarlo como migracion de este paquete. Seguir la guia AWS, que declara ddl-auto=update como limitacion de laboratorio y preserva bases existentes.
+
+## Gitflow y descarga de EV2
+
+Ver [COLABORACION.md](COLABORACION.md) y [PREPARACION_EQUIPO_EV2.md](PREPARACION_EQUIPO_EV2.md). La funcionalidad se revisa mediante PR a desarrollo. CI compila Java 21 y prueba scripts/SQL aislados, sin desplegar ni usar secretos AWS/Azure. main mantiene la entrega anterior; una entrega requiere integracion y evidencia cloud real. El [alcance EV2](docs/ALCANCE_EV2.md) separa requisitos, implementacion y pendientes.
+
+Los cuatro PR originales están en [PUBLICACION_GITFLOW_2026-10-16.md](evidencias/PUBLICACION_GITFLOW_2026-10-16.md), un registro histórico de la publicación inicial. El estado actual se comprueba en esos PR y en [la guía de continuación](CONTINUAR_EV2_EQUIPO.md). No confundir una fusión a `desarrollo` con una entrega ni con una prueba cloud.

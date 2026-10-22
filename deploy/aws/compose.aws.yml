@@ -1,0 +1,135 @@
+name: rutaexpress-ev2-aws
+
+# Backend completo propuesto para una EC2. Angular sigue LOCAL; las tres BD son RDS.
+# No sustituye compose.ev2.yml, no reutiliza sus volumenes y no se ejecuta automaticamente.
+x-java: &java
+  restart: unless-stopped
+  mem_limit: 512m
+x-identity: &identity
+  AZURE_ENABLED: "true"
+  AZURE_TENANT_ID: ${AZURE_TENANT_ID:?Falta tenant Azure}
+  AZURE_API_CLIENT_ID: ${AZURE_API_CLIENT_ID:?Falta API Azure}
+  AZURE_SPA_CLIENT_ID: ${AZURE_SPA_CLIENT_ID:?Falta SPA Azure}
+  AZURE_OPERATOR_SCOPE: ${AZURE_OPERATOR_SCOPE:-operator.access}
+  COGNITO_ISSUER_URI: ${COGNITO_ISSUER_URI:?Falta issuer Cognito anterior}
+  COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID:?Falta cliente Cognito anterior}
+  JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
+x-ca: &ca
+  type: bind
+  source: ./certs/global-bundle.pem
+  target: /run/rds-ca/global-bundle.pem
+  read_only: true
+  bind: { create_host_path: false }
+
+services:
+  rabbitmq-1:
+    image: rabbitmq:4.2-management
+    hostname: rabbitmq-1
+    restart: unless-stopped
+    mem_limit: 768m
+    environment: &rabbit
+      RABBITMQ_NODENAME: rabbit@rabbitmq-1
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:?Falta cookie privada}
+      RABBITMQ_DEFAULT_USER: rutaexpress
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Falta clave Rabbit}
+    ports: ["127.0.0.1:15672:15672"]
+    volumes:
+      - aws-rabbit-1-data:/var/lib/rabbitmq
+      - ../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+  rabbitmq-2:
+    image: rabbitmq:4.2-management
+    hostname: rabbitmq-2
+    restart: unless-stopped
+    mem_limit: 768m
+    environment:
+      <<: *rabbit
+      RABBITMQ_NODENAME: rabbit@rabbitmq-2
+    ports: ["127.0.0.1:15673:15672"]
+    volumes:
+      - aws-rabbit-2-data:/var/lib/rabbitmq
+      - ../../rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    depends_on:
+      rabbitmq-1: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+  catalog:
+    <<: *java
+    build: { context: ../../../ms-rutaexpress-catalogo }
+    environment:
+      PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${RDS_HOST:?Falta endpoint RDS}:5432/catalog_db?sslmode=verify-full&sslrootcert=/run/rds-ca/global-bundle.pem
+      SPRING_DATASOURCE_USERNAME: rx_catalog
+      SPRING_DATASOURCE_PASSWORD: ${CATALOG_DB_PASSWORD:?Falta clave catalogo}
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
+    volumes: [*ca]
+  shipments:
+    <<: *java
+    build: { context: ../.. }
+    environment:
+      <<: *identity
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${RDS_HOST}:5432/shipments_db?sslmode=verify-full&sslrootcert=/run/rds-ca/global-bundle.pem
+      SPRING_DATASOURCE_USERNAME: rx_shipments
+      SPRING_DATASOURCE_PASSWORD: ${SHIPMENTS_DB_PASSWORD:?Falta clave envios}
+      CATALOGO_URL: http://catalog:8081
+      MESSAGING_ENABLED: "true"
+      SPRING_RABBITMQ_ADDRESSES: rabbitmq-1:5672,rabbitmq-2:5672
+      SPRING_RABBITMQ_USERNAME: rutaexpress
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    volumes: [*ca]
+    depends_on:
+      catalog: { condition: service_started }
+      rabbitmq-1: { condition: service_healthy }
+  messaging:
+    <<: *java
+    build: { context: ../../../ms-rutaexpress-mensajeria }
+    environment:
+      <<: *identity
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${RDS_HOST}:5432/messaging_db?sslmode=verify-full&sslrootcert=/run/rds-ca/global-bundle.pem
+      SPRING_DATASOURCE_USERNAME: rx_messaging
+      SPRING_DATASOURCE_PASSWORD: ${MESSAGING_DB_PASSWORD:?Falta clave mensajeria}
+      SPRING_RABBITMQ_ADDRESSES: rabbitmq-1:5672,rabbitmq-2:5672
+      SPRING_RABBITMQ_USERNAME: rutaexpress
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+    volumes: [*ca]
+    depends_on:
+      rabbitmq-1: { condition: service_healthy }
+      rabbitmq-2: { condition: service_healthy }
+  report:
+    <<: *java
+    build: { context: ../../../ms-rutaexpress-reportes }
+    environment:
+      SHIPMENTS_URL: http://shipments:5000
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=65
+    depends_on:
+      shipments: { condition: service_started }
+  bff:
+    <<: *java
+    build: { context: ../../../ms-rutaexpress-bff }
+    environment:
+      <<: *identity
+      CATALOGO_URL: http://catalog:8081
+      SHIPMENTS_URL: http://shipments:5000
+      MESSAGING_URL: http://messaging:8084
+      REPORT_URL: http://report:8082
+      CORS_ALLOWED_ORIGIN: http://localhost:4200
+    # Por defecto, SOLO host. Cambiar a la IPv4 PRIVADA de EC2 para ALB/VPC Link.
+    # No usar 0.0.0.0 ni abrir 8080 a internet.
+    ports: ["${BFF_BIND_ADDRESS:-127.0.0.1}:8080:8080"]
+    depends_on:
+      messaging: { condition: service_started }
+      shipments: { condition: service_started }
+      report: { condition: service_started }
+
+volumes:
+  aws-rabbit-1-data:
+  aws-rabbit-2-data:
