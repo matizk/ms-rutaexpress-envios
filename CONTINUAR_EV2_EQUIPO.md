@@ -1,6 +1,6 @@
 # RutaExpress EV2: punto de entrada para continuar en equipo
 
-Actualizado: 17-10-2026 por el cambio de ramas acordado. Las pruebas funcionales registradas corresponden al 16-10-2026; el cambio de organización no modifica el código de la aplicación. Leer este archivo antes de cambiar infraestructura o pedirle a otra IA que continúe. **Código integrado no significa proyecto desplegado ni evaluación terminada.** Esta revisión no ha usado credenciales AWS/Azure ni ha certificado el trabajo cloud de otros integrantes.
+Actualizado: 21-10-2026 con el caso integrado `RX-1792623980566`. El integrante completó Azure Duoc → aceptación → ticket → tracking; Daniel confirmó el mismo evento en RDS y RabbitMQ. Las consultas públicas de salud, tracking y rechazo sin JWT se repitieron por separado. Fuentes, límites y pendientes en [la verificación integrada](evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md). **El flujo principal funciona; faltan revisión Git, evidencia completa de pauta e informe/presentación.** No reconstruir infraestructura ya operativa.
 
 ## 1. Qué pide esta entrega
 
@@ -34,11 +34,15 @@ Los seis repositorios son públicos bajo https://github.com/matizk. La rama coor
 
 Los cuatro PR originales quedaron fusionados; su base histórica puede mostrar el nombre anterior. Consultar los Comprobaciones y la rama desarrollo para el estado actual. Catálogo y Reportes no necesitaron cambios funcionales EV2; el ajuste de ramas sí actualiza su documentación. `main` conserva la entrega estable anterior; Mensajería main contiene su base inicial. **No hay entrega final EV2 todavía.** Las guías/evidencias antiguas que dicen “sin push” o “PR borrador” documentan aquella pasada, no el estado vivo de GitHub. [Registro del cambio de ramas](evidencias/CAMBIO_DE_RAMAS_2026-10-17.md).
 
-Para instalar Git, Docker Desktop (motor Linux), PowerShell 7 y descargar las seis carpetas hermanas con los comandos exactos: [PREPARACION_EQUIPO_EV2.md, secciones 1–3](PREPARACION_EQUIPO_EV2.md). Ejecutar con Docker evita instalar Java, Maven, Node, PostgreSQL o RabbitMQ en Windows. Hace falta internet y recursos suficientes para construir las imágenes.
+El frontend [PR #7](https://github.com/matizk/frontend-rutaexpress/pull/7) ya integró la configuración AWS/Azure/Cognito. El [PR #8](https://github.com/matizk/frontend-rutaexpress/pull/8), acceso centralizado por perfil, sigue abierto desde `matizk` hacia `desarrollo`; no se fusiona sin aprobación. Las actualizaciones documentales de esta pasada se preparan en la rama personal y no implican una entrega a `main`.
+
+Para consumir el AWS existente basta instalar Git y Node 24, descargar el frontend con la rama coordinada y ejecutar `npm ci` y `npm start` desde su carpeta. Abrir exactamente `http://localhost:4200`. El proxy ya apunta a https://awnqdvxvd9.execute-api.us-east-1.amazonaws.com con validación HTTPS. No se requiere Docker, Java ni una segunda copia del backend en el PC para este modo.
+
+Para el laboratorio completamente local, instalar también Docker Desktop (motor Linux) y PowerShell 7 y descargar las seis carpetas hermanas: [PREPARACION_EQUIPO_EV2.md, secciones 1–3](PREPARACION_EQUIPO_EV2.md). Ejecutar ese laboratorio con Docker evita instalar Java, Maven, PostgreSQL o RabbitMQ en Windows. No confundirlo con la prueba contra AWS.
 
 Si ya tienen código propio, revisar `git status`, conservarlo y coordinar antes de actualizar; no clonar encima ni hacer reset. Público permite leer/clonar, no hacer push: quien vaya a contribuir necesita permisos del propietario o el flujo de fork acordado. No se han concedido permisos nuevos ni activado protección de ramas automáticamente.
 
-## 4. Verificación local reproducible
+## 4. Verificación local reproducible, separada de AWS
 
 En la carpeta ms-rutaexpress-envios, PowerShell:
 
@@ -52,11 +56,13 @@ En la carpeta ms-rutaexpress-envios, PowerShell:
 
 Abrir http://localhost:4200. El primer arranque genera `.env.ev2` con secretos locales aleatorios, no lo sobrescribe si existe. El smoke crea datos FICTICIOS, deja mensajes de demostración en DLQ y comprueba PostgreSQL/RabbitMQ reales. La variante sin `-SinReinicios` también interrumpe temporalmente el broker y las tres bases **locales** para probar recuperación y persistencia: acordar ese momento, no usarla en AWS ni durante una presentación improvisadamente.
 
-Azure permanece deshabilitado hasta recibir los valores reales. Una revisión con Cognito Admin no acredita login Duoc. Las pruebas unitarias con RSA/JWKS de laboratorio tampoco lo acreditan. Detalle: [EV2_LOCAL.md](EV2_LOCAL.md); evidencia de descarga limpia: [evidencias/INTEGRACION_LIMPIA_2026-10-16.md](evidencias/INTEGRACION_LIMPIA_2026-10-16.md).
+El frontend compartido ya tiene Azure habilitado con los IDs reales integrados por PR #7. Un laboratorio nuevo debe mantener sus variables backend alineadas; sus valores por defecto no acreditan acceso institucional. Una revisión con Cognito Admin o RSA/JWKS de laboratorio no sustituye login Duoc. Detalle local: [EV2_LOCAL.md](EV2_LOCAL.md); evidencia histórica de descarga limpia: [evidencias/INTEGRACION_LIMPIA_2026-10-16.md](evidencias/INTEGRACION_LIMPIA_2026-10-16.md).
 
 ## 5. Trabajo del responsable de Azure
 
-1. Inventariar lo ya creado en el tenant institucional; no duplicar registros a ciegas. Obtener Tenant ID, SPA Client ID y API Client ID: son tres UUID distintos en función (SPA y API deben ser aplicaciones diferentes).
+**Situación actual:** aplicaciones y scope ya configurados; la cuenta del integrante pudo entrar y cerrar sesión tras aceptar la invitación externa al directorio del proyecto. Las instrucciones siguientes sirven para revisar o reproducir la configuración, no para crear otro tenant o volver a registrar las aplicaciones. IDs públicos y límites en [el registro vigente](evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md). En el acceso centralizado del PR #8, usar **Acceder → Soy operador · Cuenta Duoc**.
+
+1. Revisar lo ya creado en el tenant del proyecto; no duplicar registros a ciegas. Verificar Tenant ID, SPA Client ID y API Client ID contra la configuración vigente: son tres UUID con funciones distintas y SPA/API son aplicaciones diferentes.
 2. Seguir [frontend-rutaexpress/docs/AZURE_OPERADOR.md](https://github.com/matizk/frontend-rutaexpress/blob/desarrollo/docs/AZURE_OPERADOR.md). SPA con callback exacto `http://localhost:4200/auth/azure`; API con access tokens v2, URI `api://UUID-API`, scope delegado `operator.access` y permiso concedido al frontend.
 3. Verificar consentimiento y políticas del tenant. Si requiere administrador institucional, pedir autorización; no comprar Premium ni eludir controles. No se exige inventar usuarios o grupos nuevos.
 4. Pasar al equipo los tres IDs y el nombre del scope, NO contraseña, client secret ni tokens. En Envíos ejecutar con los UUID reales:
@@ -72,6 +78,8 @@ Azure permanece deshabilitado hasta recibir los valores reales. Una revisión co
 Los textos UUID son marcadores: reemplazarlos, no ejecutarlos literalmente. Si la API está en AWS, completar también las secciones siguientes; health local no demuestra autenticación remota.
 
 ## 6. Trabajo del responsable de AWS
+
+**Situación actual:** Daniel informó servicios, RabbitMQ y RDS operativos y confirmó el caso integrado. Gateway vigente: https://awnqdvxvd9.execute-api.us-east-1.amazonaws.com. Conservar evidencias del despliegue existente y contrastarlas con la pauta; la lista siguiente es una guía de mantenimiento/reproducción, no una orden para crear recursos duplicados. La revisión documental no accedió a las consolas privadas.
 
 **Paso a paso técnico:** [deploy/aws/README.md](deploy/aws/README.md). Antes de ejecutar comandos, inventariar EC2, RDS, API Gateway, red, región y crédito/permisos existentes. No borrar ni reemplazar recursos anteriores ni crear ALB/VPC Link sin aprobación del dueño de la cuenta. Detener EC2 no elimina todos los costos.
 
@@ -89,13 +97,13 @@ No enviar SSH keys, contraseñas, tokens, cookies ni credenciales cloud. No hace
 
 ## 7. Conectar y probar entre todos
 
-Con los IDs Azure ya alineados, desde Envíos en el PC:
+Para `npm start`, el proxy del frontend ya usa el Gateway compartido; no ejecutar scripts de configuración ni iniciar un stack local solo para repetir la prueba institucional. Si se elige expresamente la alternativa Docker/Nginx de frontend local, configurar su destino desde Envíos:
 
 ```powershell
-./configurar-api.ps1 -UrlApi 'https://URL-REAL-API-GATEWAY/STAGE-SI-CORRESPONDE'
+./configurar-api.ps1 -UrlApi 'https://awnqdvxvd9.execute-api.us-east-1.amazonaws.com'
 ```
 
-Reemplazar la URL, usar solo el dominio oficial verificado del equipo: recibirá bearer tokens. Seguir la sección 6 de la guía AWS para arrancar **solo Angular local** con `compose.frontend-cloud.yml`, sin depender de los backends del PC. No iniciar dos frontends en 4200. Reconstruir la imagen tras modificar `public/azure-config.json`.
+Usar solo el dominio oficial verificado del equipo: recibirá bearer tokens. Seguir la sección 6 de la guía AWS para esa alternativa con `compose.frontend-cloud.yml`, sin depender de los backends del PC. No iniciar dos frontends en 4200. Reconstruir la imagen tras modificar `public/azure-config.json`.
 
 Recorrido de aceptación, con datos ficticios:
 
@@ -117,4 +125,4 @@ Cuando el recorrido institucional/cloud y las evidencias estén aprobados, crear
 
 ## 9. Mensaje inicial para la IA de quien continúe
 
-> Continúa RutaExpress EV2 sin reescribir lo que funciona. Lee en la rama desarrollo de matizk/ms-rutaexpress-envios: CONTINUAR_EV2_EQUIPO.md, PREPARACION_EQUIPO_EV2.md, docs/ALCANCE_EV2.md y deploy/aws/README.md; además frontend-rutaexpress/docs/AZURE_OPERADOR.md. Descarga los seis repositorios como carpetas hermanas. Primero inspecciona ramas, cambios propios y recursos cloud YA existentes. Angular queda local, Azure autentica al operador y AWS aloja servicio/Rabbit/RDS/API Manager. El código local está preparado y probado, pero login Duoc y cloud siguen sin certificarse en esta revisión. Verifica lo que ya tenemos antes de crear recursos; pide IDs/configuración no secretos. No cambies main, borres datos, abras puertos internos, desactives JWT/TLS ni generes costos sin autorización. Trabaja en la rama personal acordada (matizk para el propietario; los compañeros usan las suyas) y PR a desarrollo; no recrees ramas antiguas. Completa la configuración que corresponda a mi cuenta, prueba el recorrido real y entrega evidencias redactadas y pendientes honestos.
+> Continúa RutaExpress EV2 sin reescribir lo que funciona. Lee CONTINUAR_EV2_EQUIPO.md, evidencias/EV2_VERIFICACION_INTEGRADA_2026-10-21.md, docs/ALCANCE_EV2.md y DEMOSTRACION_Y_EVIDENCIAS_EV2.md de matizk/ms-rutaexpress-envios; además frontend-rutaexpress/docs/AZURE_OPERADOR.md. Primero comprueba la rama y los PR: esta corrección documental se prepara en matizk y puede no estar integrada aún en desarrollo. Mantén los seis repositorios con sus nombres actuales y conserva cualquier cambio propio. Angular queda local, Azure autentica al operador y Cognito conserva Admin; AWS aloja los servicios, RabbitMQ, RDS y API Gateway ya existentes. El caso RX-1792623980566 ya completó Azure Duoc, aceptación, descarga de ticket y tracking público ACEPTADO. Daniel confirmó el evento d88da0d8-4f06-42b0-9f6d-03c7916052c1 en RDS/outbox y AUDIT, NOTIFICATION, TICKET; atribuye a él esa inspección privada. El PR frontend #7 ya está integrado; #8 sigue abierto para revisión y autorización explícita. No repetir el diagnóstico antiguo de IDs ausentes, reconstruir AWS, relajar JWT/TLS, cambiar a multitenant ni generar costos. No borrar datos, purgar colas, reiniciar servicios compartidos ni usar force-push. Trabaja en la rama personal acordada, matizk para el propietario y la propia para cada compañero, con PR a desarrollo; no crees otras ramas innecesarias. Completa auditoría de evidencias de pauta, documentación, informe y presentación. Distingue prueba local de error, consulta pública y verificación privada comunicada por el responsable. No integres en desarrollo o main sin la autorización correspondiente ni inventes autoría o resultados.
