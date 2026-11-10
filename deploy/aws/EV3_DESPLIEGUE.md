@@ -4,9 +4,9 @@ Mantén el proyecto de Docker Compose que ya usa EV2 en la EC2 de aplicaciones. 
 
 ## Código para el despliegue
 
-Usa `desarrollo` en los siete repositorios. En la EC2 de aplicaciones, los repositorios de BFF, Envíos, Catálogo, Mensajería, Reportes y Kafka Admin deben estar en carpetas hermanas. En la EC2 de Kafka basta con Envíos. En el PC de la demo necesitas Envíos y el frontend como carpetas hermanas.
+Usa `main` en los siete repositorios para desplegar la versión publicada de la EV3. En la EC2 de aplicaciones, los repositorios de BFF, Envíos, Catálogo, Mensajería, Reportes y Kafka Admin deben estar en carpetas hermanas. En la EC2 de Kafka basta con Envíos. En el PC de la demo necesitas Envíos y el frontend como carpetas hermanas.
 
-Si ya existe una copia de un repositorio, verifica con `git status` que esté limpia, cámbiate a `desarrollo` y actualízala con `git pull --ff-only origin desarrollo`. Para una copia nueva, clona con `git clone --branch desarrollo` y la URL de su repositorio.
+Si ya existe una copia de un repositorio, verifica con `git status` que esté limpia, cámbiate a `main` y actualízala con `git pull --ff-only origin main`. Para una copia nueva, clona con `git clone --branch main` y la URL de su repositorio.
 
 ## EC2 de Kafka
 
