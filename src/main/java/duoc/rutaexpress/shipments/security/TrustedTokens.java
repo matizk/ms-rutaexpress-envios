@@ -45,7 +45,11 @@ public class TrustedTokens {
     public static Collection<GrantedAuthority> authorities(Jwt jwt, AzureTokenPolicy azure) {
         if (azure.isAzure(jwt)) return List.of(new SimpleGrantedAuthority("ROLE_OPERATOR"));
         Object groups = jwt.getClaims().get("cognito:groups");
-        return groups instanceof Collection<?> values && values.contains("Admin")
-                ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN")) : List.of();
+        if (groups instanceof Collection<?> values && values.contains("Admin")) {
+            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        }
+        String subject = jwt.getSubject();
+        return subject != null && !subject.isBlank() && subject.length() <= 128
+                ? List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER")) : List.of();
     }
 }

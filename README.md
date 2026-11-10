@@ -4,6 +4,8 @@
 
 Microservicio de envíos de RutaExpress para DSY1107. EV2 agrega aceptación del operador y outbox transaccional; los apartados de EV1 se conservan como antecedente, no como despliegue EV2 verificado.
 
+La [guía de EV3](EV3_KAFKA.md) explica cómo iniciar la aplicación con Kafka, comprobar el recorrido hasta PostgreSQL y preparar Reportes en AWS.
+
 ## Responsabilidad
 
 - Crear y consultar envíos.

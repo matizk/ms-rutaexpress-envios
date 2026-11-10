@@ -10,9 +10,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ShipmentRepository extends JpaRepository<Shipment, Long>, JpaSpecificationExecutor<Shipment> {
 
-    boolean existsByCodigoSeguimiento(String codigoSeguimiento);
+    boolean existsByCodigoSeguimientoIgnoreCase(String codigoSeguimiento);
 
     Optional<Shipment> findByCodigoSeguimiento(String codigoSeguimiento);
+    List<Shipment> findTop2ByCodigoSeguimientoIgnoreCase(String codigoSeguimiento);
+    List<Shipment> findByCustomerSubjectOrderByFechaCreacionDescIdDesc(String customerSubject);
+    List<Shipment> findTop200ByIdGreaterThanOrderByIdAsc(long id);
 
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @org.springframework.data.jpa.repository.Query("select s from Shipment s where s.id = :id")

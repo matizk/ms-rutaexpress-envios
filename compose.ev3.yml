@@ -1,0 +1,95 @@
+# Combinar con compose.ev2.yml y compose.kafka.yml, en ese orden.
+name: rutaexpress-ev3
+
+services:
+  report-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: report_db
+      POSTGRES_USER: rutaexpress_report
+      POSTGRES_PASSWORD: ${REPORT_DB_PASSWORD:?Configurar REPORT_DB_PASSWORD}
+    volumes:
+      - ev3-report-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "rutaexpress_report", "-d", "report_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  shipments:
+    environment:
+      REPORT_KAFKA_ENABLED: "true"
+      REPORT_KAFKA_BACKFILL: ${REPORT_KAFKA_BACKFILL:-false}
+      REPORT_KAFKA_TOPIC: ${REPORT_KAFKA_TOPIC:-rutaexpress.shipments.report.v1}
+      KAFKA_BOOTSTRAP_SERVERS: kafka-1:29092,kafka-2:29092
+      TZ: UTC
+    depends_on:
+      rabbitmq-2: { condition: service_healthy }
+      kafka-1: { condition: service_healthy }
+      kafka-2: { condition: service_healthy }
+
+  report:
+    environment:
+      SPRING_PROFILES_ACTIVE: kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka-1:29092,kafka-2:29092
+      REPORT_KAFKA_TOPIC: ${REPORT_KAFKA_TOPIC:-rutaexpress.shipments.report.v1}
+      REPORT_KAFKA_REPLICAS: "2"
+      REPORT_DB_URL: jdbc:postgresql://report-db:5432/report_db
+      REPORT_DB_USER: rutaexpress_report
+      REPORT_DB_PASSWORD: ${REPORT_DB_PASSWORD}
+    depends_on:
+      report-db: { condition: service_healthy }
+      kafka-1: { condition: service_healthy }
+      kafka-2: { condition: service_healthy }
+
+  kafka-admin:
+    build: { context: ../ms-rutaexpress-kafka-admin }
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-1:29092,kafka-2:29092
+      KAFKA_ADMIN_REPLICAS: "2"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=65"
+    ports: ["127.0.0.1:8085:8085"]
+    depends_on:
+      kafka-1: { condition: service_healthy }
+      kafka-2: { condition: service_healthy }
+
+  bff:
+    environment:
+      KAFKA_ADMIN_URL: http://kafka-admin:8085
+    depends_on:
+      kafka-admin: { condition: service_started }
+
+  prometheus:
+    image: prom/prometheus:v3.5.2
+    mem_limit: 256m
+    volumes:
+      - ./deploy/observabilidad/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ev3-prometheus-data:/prometheus
+    ports: ["127.0.0.1:${PROMETHEUS_PORT:-19090}:9090"]
+    depends_on:
+      report: { condition: service_started }
+
+  grafana:
+    image: grafana/grafana:12.4.2
+    mem_limit: 384m
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Configurar GRAFANA_ADMIN_PASSWORD}
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+    volumes:
+      - ./deploy/observabilidad/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/observabilidad/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ev3-grafana-data:/var/lib/grafana
+    ports: ["127.0.0.1:${GRAFANA_PORT:-3000}:3000"]
+    depends_on:
+      prometheus: { condition: service_started }
+
+  frontend:
+    volumes:
+      - ${REPORTES_CONFIG_FILE:-./deploy/observabilidad/reportes-config.local.json}:/usr/share/nginx/html/reportes-config.json:ro
+
+volumes:
+  ev3-report-data:
+  ev3-prometheus-data:
+  ev3-grafana-data:

@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -14,7 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "shipments")
+@Table(name = "shipments", indexes = @Index(name = "ix_shipments_customer", columnList = "customer_subject,fecha_creacion"))
 public class Shipment {
 
     @Id
@@ -56,6 +57,9 @@ public class Shipment {
     @Column(name = "fecha_actualizacion", nullable = false)
     private LocalDateTime fechaActualizacion;
 
+    @Column(name = "customer_subject", length = 128, updatable = false)
+    private String customerSubject;
+
     protected Shipment() {
         // Constructor requerido por JPA.
     }
@@ -63,6 +67,13 @@ public class Shipment {
     public Shipment(String codigoSeguimiento, String nombreDestinatario, String emailDestinatario,
                     String direccionOrigen, String direccionDestino, BigDecimal pesoKg,
                     Long servicioId, String servicioNombre) {
+        this(codigoSeguimiento, nombreDestinatario, emailDestinatario, direccionOrigen, direccionDestino,
+                pesoKg, servicioId, servicioNombre, null);
+    }
+
+    public Shipment(String codigoSeguimiento, String nombreDestinatario, String emailDestinatario,
+                    String direccionOrigen, String direccionDestino, BigDecimal pesoKg,
+                    Long servicioId, String servicioNombre, String customerSubject) {
         this.codigoSeguimiento = codigoSeguimiento;
         this.nombreDestinatario = nombreDestinatario;
         this.emailDestinatario = emailDestinatario;
@@ -71,6 +82,7 @@ public class Shipment {
         this.pesoKg = pesoKg;
         this.servicioId = servicioId;
         this.servicioNombre = servicioNombre;
+        this.customerSubject = customerSubject;
         this.estado = ShipmentStatus.CREADO;
     }
 
