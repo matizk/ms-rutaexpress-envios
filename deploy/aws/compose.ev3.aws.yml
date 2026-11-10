@@ -1,0 +1,57 @@
+# Aplicar sobre compose.aws.yml en la EC2 de aplicaciones. Kafka vive en otra EC2.
+
+services:
+  shipments:
+    environment:
+      REPORT_KAFKA_ENABLED: "true"
+      REPORT_KAFKA_BACKFILL: ${REPORT_KAFKA_BACKFILL:-false}
+      REPORT_KAFKA_TOPIC: ${REPORT_KAFKA_TOPIC:-rutaexpress.shipments.report.v1}
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:?Configurar los dos brokers privados}
+      TZ: UTC
+
+  report:
+    environment:
+      SPRING_PROFILES_ACTIVE: kafka
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:?Configurar los dos brokers privados}
+      REPORT_KAFKA_TOPIC: ${REPORT_KAFKA_TOPIC:-rutaexpress.shipments.report.v1}
+      REPORT_KAFKA_REPLICAS: "2"
+      REPORT_DB_URL: jdbc:postgresql://${RDS_HOST:?Falta endpoint RDS}:5432/report_db?sslmode=verify-full&sslrootcert=/run/rds-ca/global-bundle.pem
+      REPORT_DB_USER: rx_report
+      REPORT_DB_PASSWORD: ${REPORT_DB_PASSWORD:?Falta clave de Reportes}
+    volumes:
+      - type: bind
+        source: ./certs/global-bundle.pem
+        target: /run/rds-ca/global-bundle.pem
+        read_only: true
+        bind: { create_host_path: false }
+
+  kafka-admin:
+    build: { context: ../../../ms-rutaexpress-kafka-admin }
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:?Configurar los dos brokers privados}
+      KAFKA_ADMIN_REPLICAS: "2"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=65"
+
+  bff:
+    environment:
+      KAFKA_ADMIN_URL: http://kafka-admin:8085
+    depends_on:
+      kafka-admin: { condition: service_started }
+
+  prometheus:
+    extends:
+      file: ../../compose.ev3.yml
+      service: prometheus
+    restart: unless-stopped
+
+  grafana:
+    extends:
+      file: ../../compose.ev3.yml
+      service: grafana
+    restart: unless-stopped
+
+volumes:
+  ev3-prometheus-data:
+  ev3-grafana-data:
