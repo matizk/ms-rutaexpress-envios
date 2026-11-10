@@ -19,6 +19,7 @@ import duoc.rutaexpress.shipments.exception.BusinessRuleException;
 import duoc.rutaexpress.shipments.repository.ShipmentRepository;
 import duoc.rutaexpress.shipments.messaging.OutboxRecorder;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class ShipmentServiceTest {
     @Test
     void createsShipmentWithCreatedStatus() {
         CreateShipmentRequest request = validRequest();
-        when(shipmentRepository.existsByCodigoSeguimiento(request.codigoSeguimiento())).thenReturn(false);
+        when(shipmentRepository.existsByCodigoSeguimientoIgnoreCase(request.codigoSeguimiento())).thenReturn(false);
         when(catalogClient.reserveCapacity(request.servicioId()))
                 .thenReturn(new CatalogServiceSnapshot(1L, "Express", 4));
         when(shipmentRepository.save(any(Shipment.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -83,7 +84,7 @@ class ShipmentServiceTest {
     @Test
     void tracksShipmentByCodeWithoutExposingRecipientData() {
         Shipment shipment = shipmentInStatus(ShipmentStatus.EN_RUTA);
-        when(shipmentRepository.findByCodigoSeguimiento("RX-0001")).thenReturn(Optional.of(shipment));
+        when(shipmentRepository.findTop2ByCodigoSeguimientoIgnoreCase("rx-0001")).thenReturn(List.of(shipment));
 
         PublicTrackingResponse response = shipmentService.track(" rx-0001 ");
 

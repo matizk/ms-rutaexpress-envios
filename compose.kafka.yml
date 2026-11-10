@@ -1,0 +1,84 @@
+name: rutaexpress-kafka
+
+x-broker: &broker
+  image: confluentinc/cp-kafka:7.9.10
+  restart: unless-stopped
+  mem_limit: 768m
+  depends_on:
+    zookeeper:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:29092"]
+    interval: 10s
+    timeout: 8s
+    retries: 15
+    start_period: 25s
+
+x-kafka-environment: &kafka-environment
+  KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 2
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+  KAFKA_DELETE_TOPIC_ENABLE: "true"
+  KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+  KAFKA_HEAP_OPTS: "-Xms256m -Xmx384m"
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.9.10
+    restart: unless-stopped
+    mem_limit: 384m
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_HEAP_OPTS: "-Xms128m -Xmx256m"
+    volumes:
+      - ev3-zookeeper-data:/var/lib/zookeeper/data
+      - ev3-zookeeper-log:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD", "cub", "zk-ready", "localhost:2181", "8"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+
+  kafka-1:
+    <<: *broker
+    hostname: kafka-1
+    environment:
+      <<: *kafka-environment
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:29092
+    volumes:
+      - ev3-kafka-1-data:/var/lib/kafka/data
+
+  kafka-2:
+    <<: *broker
+    hostname: kafka-2
+    environment:
+      <<: *kafka-environment
+      KAFKA_BROKER_ID: 2
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:29092
+    volumes:
+      - ev3-kafka-2-data:/var/lib/kafka/data
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    restart: unless-stopped
+    mem_limit: 448m
+    environment:
+      KAFKA_CLUSTERS_0_NAME: rutaexpress
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:29092,kafka-2:29092
+      JAVA_OPTS: "-Xms128m -Xmx288m"
+    ports: ["127.0.0.1:${KAFKA_UI_PORT:-18089}:8080"]
+    depends_on:
+      kafka-1: { condition: service_healthy }
+      kafka-2: { condition: service_healthy }
+
+volumes:
+  ev3-zookeeper-data:
+  ev3-zookeeper-log:
+  ev3-kafka-1-data:
+  ev3-kafka-2-data:

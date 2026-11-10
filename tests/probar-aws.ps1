@@ -63,8 +63,9 @@ foreach ($origin in @('http://backend.example.com','https://127.0.0.1','https://
 }
 $plan=New-AwsApiTemplate (Config)
 $routes=@($plan.Resources.Values | Where-Object Type -eq 'AWS::ApiGatewayV2::Route')
-Test '28 rutas explicitas, ninguna default/catch-all' {
-    Assert ($routes.Count -eq 28) 'Cantidad de rutas inesperada'
+Test '38 rutas explicitas y unicas, ninguna default/catch-all' {
+    Assert ($routes.Count -eq 38) 'Cantidad de rutas inesperada'
+    Assert (@($routes.Properties.RouteKey | Sort-Object -Unique).Count -eq $routes.Count) 'Ruta duplicada'
     Assert (@($routes | Where-Object {$_.Properties.RouteKey -match '\$default|ANY|\{proxy\+'}).Count -eq 0) 'Ruta comodin'
 }
 Test 'Solo salud y tracking son publicos' {
@@ -80,10 +81,20 @@ Test 'Cuatro rutas operador requieren Azure y scope delegado' {
         Assert ($r.Properties.AuthorizationScopes[0] -eq 'operator.access') 'Scope omitido'
     }
 }
-Test 'Administracion usa Cognito con scope y BFF preservado' {
-    $admin=@($routes | Where-Object {$_.Properties.RouteKey -notmatch '/api/operator/' -and $_.Properties.AuthorizationType -ne 'NONE'})
-    Assert ($admin.Count -eq 22) 'Cantidad admin inesperada'
-    foreach ($r in $admin) { Assert ($r.Properties.AuthorizerId.Ref -eq 'CognitoAuthorizer' -and $r.Properties.AuthorizationScopes[0] -eq 'openid') 'Admin sin JWT/scope' }
+Test 'Administracion y cliente usan Cognito con scope y BFF preservado' {
+    $cognito=@($routes | Where-Object {$_.Properties.RouteKey -notmatch '/api/operator/' -and $_.Properties.AuthorizationType -ne 'NONE'})
+    Assert ($cognito.Count -eq 32) 'Cantidad de rutas Cognito inesperada'
+    foreach ($r in $cognito) {
+        Assert ($r.Properties.AuthorizationType -eq 'JWT' -and $r.Properties.AuthorizerId.Ref -eq 'CognitoAuthorizer' -and
+            $r.Properties.AuthorizationScopes[0] -eq 'openid') 'Ruta sin JWT o scope Cognito'
+    }
+    foreach ($key in @('GET /api/customer/services','GET /api/customer/shipments','POST /api/customer/shipments',
+        'GET /api/report/kafka/topics','POST /api/report/kafka/topics',
+        'GET /api/report/kafka/topics/{topic}/retention','PUT /api/report/kafka/topics/{topic}/retention',
+        'GET /api/report/kafka/topics/{topic}/partitions','PUT /api/report/kafka/topics/{topic}/partitions',
+        'DELETE /api/report/kafka/topics/{topic}')) {
+        Assert ($key -in $cognito.Properties.RouteKey) "Falta ruta EV3 protegida: $key"
+    }
 }
 Test 'JWT Azure usa audience API, no SPA/Graph' { Assert ($plan.Resources.AzureAuthorizer.Properties.JwtConfiguration.Audience[0] -eq (Config).apiClientId) 'Audience incorrecta' }
 Test 'Authorizer solo lee header, no token en query' { Assert ($plan.Resources.AzureAuthorizer.Properties.IdentitySource[0] -ceq '$request.header.Authorization') 'Fuente peligrosa' }
@@ -187,6 +198,16 @@ if ($ConDocker) {
             Assert (@($front.services.PSObject.Properties).Count -eq 1) 'Hay backends locales en frontend cloud'
             Assert ($front.services.frontend.environment.BFF_UPSTREAM -eq 'https://abcdef123.execute-api.us-east-1.amazonaws.com') 'Destino API perdido'
             Assert ($front.services.frontend.ports[0].host_ip -eq '127.0.0.1') 'Frontend expuesto'
+        }
+        $frontEv3Raw=& docker compose --env-file $envPath -f (Join-Path $repo 'deploy/aws/compose.frontend-cloud.yml') -f (Join-Path $repo 'deploy/aws/compose.ev3.frontend-cloud.yml') config --format json 2>$null
+        if ($LASTEXITCODE -ne 0) { throw 'Compose frontend EV3 no valida.' }
+        $frontEv3=$frontEv3Raw | ConvertFrom-Json
+        Test 'Frontend EV3 hacia AWS monta la configuracion de Grafana' {
+            $mount=@($frontEv3.services.frontend.volumes | Where-Object target -eq '/usr/share/nginx/html/reportes-config.json')
+            Assert ($mount.Count -eq 1 -and $mount[0].read_only -and
+                (Test-Path -LiteralPath $mount[0].source -PathType Leaf)) 'Montaje de Grafana incorrecto'
+            $grafana=Get-Content -LiteralPath $mount[0].source -Raw | ConvertFrom-Json
+            Assert ($grafana.grafanaBaseUrl -ceq 'http://localhost:3000/') 'URL del tunel Grafana incorrecta'
         }
     } finally {
         # Solo nuestro directorio efimero, comprobado antes de limpieza recursiva.

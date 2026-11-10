@@ -6,6 +6,7 @@ import duoc.rutaexpress.shipments.domain.Shipment;
 import duoc.rutaexpress.shipments.domain.ShipmentStatus;
 import duoc.rutaexpress.shipments.dto.ChangeShipmentStatusRequest;
 import duoc.rutaexpress.shipments.dto.CreateShipmentRequest;
+import duoc.rutaexpress.shipments.dto.CustomerShipmentRequest;
 import duoc.rutaexpress.shipments.dto.ShipmentResponse;
 import duoc.rutaexpress.shipments.dto.PublicTrackingResponse;
 import duoc.rutaexpress.shipments.exception.BusinessRuleException;
@@ -18,8 +19,10 @@ import java.time.LocalTime;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Locale;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,13 +45,31 @@ public class ShipmentService {
 
     @Transactional
     public ShipmentResponse create(CreateShipmentRequest request) {
-        if (shipmentRepository.existsByCodigoSeguimiento(request.codigoSeguimiento())) {
+        return createShipment(request, null);
+    }
+
+    @Transactional
+    public ShipmentResponse createForCustomer(String subject, CustomerShipmentRequest request) {
+        String trackingCode = "RX-" + UUID.randomUUID().toString().replace("-", "").toUpperCase(Locale.ROOT);
+        return createShipment(new CreateShipmentRequest(trackingCode, request.nombreDestinatario().trim(),
+                request.emailDestinatario().trim(), request.direccionOrigen().trim(), request.direccionDestino().trim(),
+                request.pesoKg(), request.servicioId()), subject);
+    }
+
+    public List<ShipmentResponse> findForCustomer(String subject) {
+        return shipmentRepository.findByCustomerSubjectOrderByFechaCreacionDescIdDesc(subject).stream()
+                .map(ShipmentResponse::from)
+                .toList();
+    }
+
+    private ShipmentResponse createShipment(CreateShipmentRequest request, String customerSubject) {
+        if (shipmentRepository.existsByCodigoSeguimientoIgnoreCase(request.codigoSeguimiento())) {
             throw new BusinessRuleException("Ya existe un envío con ese código de seguimiento");
         }
         CatalogServiceSnapshot service = catalogClient.reserveCapacity(request.servicioId());
         Shipment shipment = new Shipment(request.codigoSeguimiento(), request.nombreDestinatario(),
                 request.emailDestinatario(), request.direccionOrigen(), request.direccionDestino(), request.pesoKg(),
-                service.id(), service.nombre());
+                service.id(), service.nombre(), customerSubject);
         Shipment saved = shipmentRepository.save(shipment);
         outbox.record(saved, "shipment.created");
         return ShipmentResponse.from(saved);
@@ -59,8 +80,12 @@ public class ShipmentService {
     }
 
     public PublicTrackingResponse track(String codigoSeguimiento) {
-        Shipment shipment = shipmentRepository.findByCodigoSeguimiento(
-                        codigoSeguimiento.trim().toUpperCase(Locale.ROOT))
+        String code = codigoSeguimiento.trim();
+        Shipment shipment = shipmentRepository.findByCodigoSeguimiento(code)
+                .or(() -> {
+                    List<Shipment> matches = shipmentRepository.findTop2ByCodigoSeguimientoIgnoreCase(code);
+                    return matches.size() == 1 ? Optional.of(matches.getFirst()) : Optional.empty();
+                })
                 .orElseThrow(() -> new ResourceNotFoundException("No existe un envío con ese código"));
         return PublicTrackingResponse.from(shipment);
     }

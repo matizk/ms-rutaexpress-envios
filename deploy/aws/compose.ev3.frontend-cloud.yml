@@ -1,0 +1,9 @@
+# Aplicar sobre compose.frontend-cloud.yml en el PC que ejecuta Angular.
+services:
+  frontend:
+    volumes:
+      - type: bind
+        source: ${REPORTES_CONFIG_FILE:-../observabilidad/reportes-config.local.json}
+        target: /usr/share/nginx/html/reportes-config.json
+        read_only: true
+        bind: { create_host_path: false }

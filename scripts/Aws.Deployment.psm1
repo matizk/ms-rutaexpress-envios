@@ -17,6 +17,13 @@ function Get-AwsApiRoutes {
     foreach ($route in $operator) { [pscustomobject]@{Key=$route;Auth='Azure'} }
     foreach ($route in $public) { [pscustomobject]@{Key=$route;Auth='Public'} }
     foreach ($route in $admin) { [pscustomobject]@{Key=$route;Auth='Cognito'} }
+    # Agregar al final para conservar los IDs de recursos de la plantilla EV2.
+    $ev3 = @('GET /api/customer/services','GET /api/customer/shipments','POST /api/customer/shipments',
+        'GET /api/report/kafka/topics','POST /api/report/kafka/topics',
+        'GET /api/report/kafka/topics/{topic}/retention','PUT /api/report/kafka/topics/{topic}/retention',
+        'GET /api/report/kafka/topics/{topic}/partitions','PUT /api/report/kafka/topics/{topic}/partitions',
+        'DELETE /api/report/kafka/topics/{topic}')
+    foreach ($route in $ev3) { [pscustomobject]@{Key=$route;Auth='Cognito'} }
 }
 
 function Test-AwsApiConfiguration {
@@ -114,7 +121,7 @@ function New-AwsApiTemplate {
     }
     return [ordered]@{
         AWSTemplateFormatVersion='2010-09-09'
-        Description='RutaExpress EV2 - PLAN NO DESPLEGADO. HTTP API, Azure/Cognito y rutas explicitas; recursos de red existentes.'
+        Description='RutaExpress - PLAN NO DESPLEGADO. HTTP API, Azure/Cognito y rutas explicitas; recursos de red existentes.'
         Resources=$resources
         Outputs=@{ApiUrl=@{Value=@{'Fn::GetAtt'=@('HttpApi','ApiEndpoint')}}}
     }
